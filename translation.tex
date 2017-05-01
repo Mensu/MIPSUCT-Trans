@@ -12,7 +12,7 @@
 \maketitle
 
 \begin{abstract}
-在给定的集合中，高效地查找某个查询在欧氏距离和余弦相似度方面的最佳匹配这个问题已经有了广泛的研究。然而就我们所知，另一个与之紧密相关的问题，即在一般情况下，如何高效地查找内积方面最佳匹配的问题，却从未被探索过。本文将讨论这个问题，并与前面的那些问题进行比对。我们先提出一个通常意义上基于（单）树形数据结构的分支界限算法。随后，我们提出一个双树算法来应对多个查询的情况。我们给出的分支界限算法是建立在全新的内积界限之上的。最后我们会给出一个新的数据结构，锥树，来提高双树的效率。我们用了各种应用中产生的大量数据集对这些算法进行了评估，在某些情况下，与暴力搜索的算法相比，查询速度提高了多达5个数量级。
+在给定的集合中，高效地查找某个查询在欧氏距离和余弦相似度方面的最佳匹配这个问题已经有了广泛的研究。然而就我们所知，另一个与之紧密相关的问题，即在一般情况下，如何高效地查找内积方面最佳匹配的问题，却从未被探索过。本文将讨论这个问题，并与前面的那些问题进行比对。我们先提出一个通常意义上基于（单）树形数据结构的分支界限算法。随后，我们提出一个双树算法来应对多个查询的情况。我们给出的分支界限算法是建立在新的内积界限之上的。最后我们会给出一个新的数据结构，锥树，来提高双树的效率。我们用了各种应用中产生的大量数据集对这些算法进行了评估，在某些情况下，与暴力搜索的算法相比，查询速度提高了多达5个数量级。
 \end{abstract}
 
 \section*{分类和主题描述}
@@ -30,23 +30,23 @@ E.1 [数据结构]: 树; G.4 [数学软件]: 算法设计与分析; H.2.8 [数�
 \langle q,p \rangle = \max_{r \in S}\langle q,r \rangle
 \end{equation}
 
-乍看之下，这个问题与很多已有文献做的工作十分类似。高效地查找在欧氏距离（或者更一般 $L_p$）方面的最佳匹配，是被人广泛研究的最近邻度量空间搜索问题。在文本挖掘和信息检索领域中，余弦相似性方面最佳匹配的高效检索已有相应的研究。不过正如我们会在下一节中解释的那样，最大内积搜索不仅与上述问题不同，而且更加困难
+乍看之下，这个问题与很多已有文献做的工作十分类似。高效地查找在欧氏距离（或者更一般 $L_p$）方面的最佳匹配，是被人广泛研究的最近邻度量空间搜索问题。在文本挖掘和信息检索领域中，余弦相似性方面最佳匹配的高效检索已有相应的研究。不过在下一节我们会解释，最大内积搜索不仅与上述问题不同，而且更加困难。
 
 \subsection{应用}
-最大内积搜索的一个显然的应用来自于已经大获成功的推荐系统中所用的矩阵分解框架，如“Netflix Prize”中所用的。矩阵分解使得就“用户”向量和“商品”向量而言，可用的数据可以被精确地表示出来（“商品”的例子比如音乐或者电影）。在这个背景下，用户对于商品的偏好就是相对应的“用户”向量和“商品”向量的内积\footnote{更好的方法其实是用户和商品向量的内积加上一个偏移项，但是如果把用户向量尾部添加一个1，商品向量添加一个商品偏移量，这个问题就退化成最大内积问题了}。如果把用户当做查询，商品当做参考集合的话，对于用户推荐的检索就等同于最大内积搜索的问题。通常会使用线性扫描来查找最佳的推荐。一个高效的搜索算法会使得在矩阵分解框架中的推荐检索可以向更大的系统中拓展。
+最大内积搜索的一个明显的应用，来自于诸如“Netflix Prize”这类推荐系统中所用的，已经大获成功的矩阵分解框架。矩阵分解使得可用的数据可以用“用户”向量和“商品”向量精确地表示出来（“商品”可以是音乐或者电影）。在这个背景下，用户对于商品的偏好就是对应的“用户”向量和“商品”向量的内积\footnote{偏好其实是用户和商品向量的内积加上一个偏移项，但是如果给用户向量添加一个1，给商品向量添加一个商品偏移量，那这个问题就退化成内积问题了}。如果把用户当做查询，商品当做参考集合的话，对于用户推荐的检索就等同于最大内积搜索的问题。通常的做法是对商品进行线性扫描来查找最佳推荐。而高效的搜索算法会使得矩阵分解框架中的推荐检索可以向更大的系统中拓展。
 
-常用的文档检索任务会使用余弦相似性来匹配文档。然而在特定的环境下，文档会被表示成（不一定是标准化的）向量，向量间的内积就代表它们的相似度。在这样的情况下，除非向量被标准化成同样的长度，用余弦相似度来做文档匹配只能在返回不准确的结果的代价下使这个算法可拓展，因为内积和余弦相似性不一样的（我们会在第二节中进一步讨论这个问题）。
+常用的文档检索任务会使用余弦相似性来匹配文档。然而在特定的背景下，文档会被表示成（不一定是标准化的）向量，向量间的内积就代表它们的相似度。在这样的情况下，除非向量被标准化成同样的长度，否则要让用余弦相似度来做文档匹配的算法可扩展，会付出结果不准确的代价，毕竟内积和余弦相似性还是不一样的（我们会在第二节中进一步讨论这个问题）。
 
-还有一个类似的问题就是最大核操作：对于给定的一个点集$S$，一个查询$q$和一个核函数$\mathcal{K}(\cdot,\cdot)$，任务就是在集合$S$上找到使得$\mathcal{K}(p,q)$最大的点$p \in S$这个问题在机器学习中的最大后验推理，计算机视觉中的图像匹配中都被广泛地应用。如果核函数可以被显式地表达成$\varphi(\cdot)$使得$\mathcal{K}(p,q) = \langle \varphi(q), \varphi(r) \rangle$的形式，并且在所有$S$中的点和查询$q$都被转换到$\varphi$空间，那么这个问题就退化最大内积搜索问题了。
+还有一个类似的问题就是最大核操作：给定一个点集$S$，一个查询$q$和一个核函数$\mathcal{K}(\cdot,\cdot)$，任务是，在集合$S$上找到一个点$p \in S$使得$\mathcal{K}(p,q)$最大。这个问题在机器学习中的最大后验推理和计算机视觉中的图像匹配中都得到了广泛的应用。如果核函数可以显式地表达成$\varphi(\cdot)$的形式，且满足$\mathcal{K}(p,q) = \langle \varphi(q), \varphi(r) \rangle$，并且集合$S$中的所有点和查询$q$都被转换到$\varphi$空间，那么这个问题就退化为最大内积搜索问题了。
 
 \subsection{这篇论文}
-在这篇论文中，为我们提出了两个基于树的“branch-and-bound”算法以及一个新的数据结构来解决这个问题。
-在第二节中，我们把这个问题和与度量空间中一些更为常见的问题，如最近邻搜索和对于余弦相似性的最佳匹配问题进行对比。在第三节中，我们使用已有的球树数据结构和一个新颖的约束，提出了一个简单的“branch-and-bound”算法。
-在下一节（第四节）中，我们讨论了在同一个点集上进行多次查询的情况，并且提出了基于双树的“branch-and-bound”算法。
-在第五节中，我们将展示一个新的数据结构，锥树，来对双树的算法进行索引。这些数据结构利用了一个新颖的内积约束，这比传统的球树所能达到的更好。
-第六节中，所提出的这个算法会针对不同的数据集进行评估。
-而第七节证明了我们提出的这个算法可以被应用于最大核操作，并且使用一个通用的核函数而不需要任何显式的$\varphi$-空间的点的表示。
-在最后一节中，我们会给出我们的结论以及未来一些可能的在这个问题上的工作方向。
+在这篇论文中，我们提出两个基于树的分支界限算法以及一个新的数据结构来解决这个问题。
+在第二节中，我们把这个问题和度量空间中一些更为常见的最近邻搜索问题，以及在余弦相似性方面的最佳匹配问题进行对比。在第三节中，我们提出一个简单的分支界限算法，该算法使用的是已有的球树数据结构和一个新的界限。
+在接下来一节（第四节）中，我们将处理同一个点集上多个查询的情况，并且提出基于双树的分支界限算法。
+在第五节中，我们将展示一个新的数据结构，锥树，来对双树算法进行索引。这些结构利用了一个新的内积界限，这比传统的球树所能达到的界限更为严格。
+在第六节中，我们将用不同的数据集对提出的这个算法进行评估。
+第七节证明我们提出的这个算法可以被应用于最大核操作，而且使用的是一个通用的核函数而不需要显式地表示出$\varphi$-空间里的点。
+在最后一节中，我们会给出我们的结论以及未来在这个问题上可能的研究方向。
 
 \section{最大内积搜索}
 在欧几里德度量空间中存在许多最近邻搜索的技术（见一些调查，如\cite{9}）。 大量针对余弦相似度测度的最佳匹配算法也已经被开发出来，其中很多都在关注文本类型的数据。 最近邻搜索的问题（在度量空间中）已经被广泛流行的局部敏感哈希（LSH）大致地解决了。 LSH已经被推广到其他形式的相似性函数（与把距离作为不相似函数相反）如余弦相似性
@@ -373,41 +373,47 @@ q_c = \arg \max_{q\in Q.S}\frac{\sum_{q'\in Q.S}\frac{\mathcal{K}(q',q)}{\sqrt{\
 \section{参考文献}
 \renewcommand{\section}[2]{}
 \begin{thebibliography}{1}
-\bibitem{1} R. Bayardo, Y. Ma, and R. Srikant. Scaling Up All
-Pairs Similarity Search. In Proceedings of the 16th
-Intl. Conf. on World Wide Web, 2007.
-\bibitem{2} R. M. Bell and Y. Koren. Lessons from the Netflix
-Prize Challenge. SIGKDD Explor. Newsl., 2007.
-\bibitem{3} J. Bennett and S. Lanning. The Netflix Prize. In Proc.
-KDD Cup and Workshop, 2007.
-\bibitem{4} A. Beygelzimer, S. Kakade, and J. Langford. Cover
-Trees for Nearest Neighbor. Proceedings of the 23rd
+\bibitem{1} R. Bayardo, Y. Ma, and R. Srikant. Scaling Up All Pairs Similarity Search. In Proceedings of the 16th Intl. Conf. on World Wide Web, 2007.
+\bibitem{2} R. M. Bell and Y. Koren. Lessons from the Netflix Prize Challenge. SIGKDD Explor. Newsl., 2007.
+\bibitem{3} J. Bennett and S. Lanning. The Netflix Prize. In Proc. KDD Cup and Workshop, 2007.
+\bibitem{4} A. Beygelzimer, S. Kakade, and J. Langford. Cover Trees for Nearest Neighbor. Proceedings of the 23rd
 Intl. Conf. on Machine Learning, 2006.
-\bibitem{5} C. L. Blake and C. J. Merz. UCI Machine Learning
-Repository. http://archive.ics.uci.edu/ml/, 1998.
-\bibitem{6} L. Cayton and S. Dasgupta. A Learning Framework
-for Nearest Neighbor Search. Advances in Neural Info.
+\bibitem{5} C. L. Blake and C. J. Merz. UCI Machine Learning Repository. http://archive.ics.uci.edu/ml/, 1998.
+\bibitem{6} L. Cayton and S. Dasgupta. A Learning Framework for Nearest Neighbor Search. Advances in Neural Info.
 Proc. Systems 20, 2007.
-\bibitem{7} M. S. Charikar. Similarity Estimation Techniques from
-Rounding Algorithms. In Proceedings of the 34th
+\bibitem{7} M. S. Charikar. Similarity Estimation Techniques from Rounding Algorithms. In Proceedings of the 34th
 annual ACM Symp. on Theory of Comp., 2002.
-\bibitem{8} P. Ciaccia and M. Patella. PAC Nearest Neighbor
-Queries: Approximate and Controlled Search in
-High-dimensional and Metric spaces. Proceedings of
-16th Intl. Conf. on Data Engineering, 2000.
-\bibitem{9} K. Clarkson. Nearest-neighbor Searching and Metric
-Space Dimensions. Nearest-Neighbor Methods for
+\bibitem{8} P. Ciaccia and M. Patella. PAC Nearest Neighbor Queries: Approximate and Controlled Search in High-dimensional and Metric spaces. Proceedings of 16th Intl. Conf. on Data Engineering, 2000.
+\bibitem{9} K. Clarkson. Nearest-neighbor Searching and Metric Space Dimensions. Nearest-Neighbor Methods for
 Learning and Vision: Theory and Practice, 2006.
-\bibitem{10} S. Dasgupta and Y. Freund. Random projection trees
-and low dimensional manifolds. In Proceedings of the
+\bibitem{10} S. Dasgupta and Y. Freund. Random projection trees and low dimensional manifolds. In Proceedings of the
 40th annual ACM Symp. on Theory of Comp., 2008.
-\bibitem{11} S. C. Deerwester, S. T. Dumais, T. K. Landauer,
-G. W. Furnas, and R. A. Harshman. Indexing by
-Latent Semantic Analysis. Journal of the American
-Society of Info. Science, 1990.
-\bibitem{12} G. Dror, N. Koenigstein, Y. Koren, and M. Weimer.
-The Yahoo! Music Dataset and KDD-Cup’11. Journal
+\bibitem{11} S. C. Deerwester, S. T. Dumais, T. K. Landauer, G. W. Furnas, and R. A. Harshman. Indexing by
+Latent Semantic Analysis. Journal of the American Society of Info. Science, 1990.
+\bibitem{12} G. Dror, N. Koenigstein, Y. Koren, and M. Weimer. The Yahoo! Music Dataset and KDD-Cup’11. Journal
 Of Machine Learning Research, 2011.
+\bibitem{13} J. H. Freidman, J. L. Bentley, and R. A. Finkel. An Algorithm for Finding Best Matches in Logarithmic Expected Time. ACM Trans. Math. Softw., 1977.
+\bibitem{14} A. Gionis, P. Indyk, and R. Motwani. Similarity Search in High Dimensions via Hashing. Proceedings of the 25th Intl. Conf. on Very Large Data Bases, 1999.
+\bibitem{15} A. G. Gray and A. W. Moore. ‘N -Body’ Problems in Statistical Learning. In Advances in Neural Info. Proc.
+Systems 13, 2000.
+\bibitem{16} A. G. Gray and A. W. Moore. Nonparametric Density Estimation: Toward Computational Tractability. In SIAM Data Mining, 2003.
+\bibitem{17} GroupLens. MovieLens dataset.
+\bibitem{18} P. Indyk and R. Motwani. Approximate Nearest Neighbors: Towards Removing the Curse of Dimensionality. In Proceedings of the 30th annual ACM Symp. on Theory of Comp., 1998.
+\bibitem{19} S. Kim, F. Li, G. Lebanon, and I. Essa. Beyond Sentiment: The Manifold of Human Emotions. Arxiv preprint arXiv:1202.1568, 2011.
+\bibitem{20} M. Klaas, D. Lang, and N. de Freitas. Fast Maximum-a-posteriori Inference in Monte Carlo State Spaces. In Artificial Intelligence and Statistics, 2005.
+\bibitem{21} Y. Koren. The BellKor solution to the Netflix Grand Prize. 2009.
+\bibitem{22} Y. Koren, R. M. Bell, and C. Volinsky. Matrix Factorization Techniques for Recommender Systems.
+IEEE Computer, 2009.
+\bibitem{23} B. Kulis and K. Grauman. Kernelized Locality-sensitive Hashing for Scalable Image Search.  In IEEE 12th Intl. Conf. on Computer Vision, 2009.
+\bibitem{24} Y. LeCun. MNist dataset, 2000. http://yann.lecun.com/exdb/mnist/.
+\bibitem{25} Z. Li, H. Ning, L. Cao, T. Zhang, Y. Gong, and T. S. Huang. Learning to Search Efficiently in High Dimensions. In Advances in Neural Info. Proc. Systems 24. 2011.
+\bibitem{26} T. Liu, A. W. Moore, A. G. Gray, and K. Yang. An Investigation of Practical Approximate Nearest Neighbor Algorithms. In Advances in Neural Info. Proc. Systems 17, 2005.
+\bibitem{27} R. Lupton, J. Gunn, Z. Ivezic, G. Knapp, S. Kent, and N. Yasuda. The SDSS Imaging Pipelines. Arxiv preprint astro-ph/0101420, 2001.
+\bibitem{28} S. M. Omohundro. Five Balltree Construction Algorithms. Technical report, International Computer Science Institute, December 1989.
+\bibitem{29} F. P. Preparata and M. I. Shamos. Computational Geometry: An Introduction. Springer, 1985.
+\bibitem{30} A. Rahimi and B. Recht. Random Features for Large-scale Kernel Machines. Advances in Neural Info. Proc. Systems 20, 2007.
+\bibitem{31} P. Ram, D. Lee, W. March, and A. Gray. Linear-time Algorithms for Pairwise Statistical Problems. In Advances in Neural Info. Proc. Systems 22. 2009.
+\bibitem{32} P. Ram, D. Lee, H. Ouyang, and A. G. Gray. Rank-Approximate Nearest Neighbor Search: Retaining Meaning and Speed in High Dimensions. In Advances in Neural Info. Proc. Systems 22. 2009.
 \end{thebibliography}
 
 \end{document}
