@@ -17,7 +17,7 @@
 
 \section*{分类和主题描述}
 E.1 [数据结构]: 树; G.4 [数学软件]: 算法设计与分析; H.2.8 [数据库管理]: 数据库应用——数据挖掘; H.3.3 [信息存储与检索]: 信息查找与检索——查找过程
-\section*{一般项}
+\section*{通用项}
 算法, 设计
 \section*{关键词}
 度量树、锥树、双树分支界限
@@ -49,7 +49,7 @@ E.1 [数据结构]: 树; G.4 [数学软件]: 算法设计与分析; H.2.8 [数�
 在最后一节中，我们会给出我们的结论以及未来一些可能的在这个问题上的工作方向。
 
 \section{最大内积搜索}
-在欧几里德度量空间中存在许多最近邻搜索的技术（见一些调查，如[9]）。 大量针对余弦相似度测度的最佳匹配算法也已经被开发出来，其中很多都在关注文本类型的数据。 最近邻搜索的问题（在度量空间中）已经被广泛流行的局部敏感哈希（LSH）大致地解决了。 LSH已经被推广到其他形式的相似性函数（与把距离作为不相似函数相反）如余弦相似性
+在欧几里德度量空间中存在许多最近邻搜索的技术（见一些调查，如\cite{9}）。 大量针对余弦相似度测度的最佳匹配算法也已经被开发出来，其中很多都在关注文本类型的数据。 最近邻搜索的问题（在度量空间中）已经被广泛流行的局部敏感哈希（LSH）大致地解决了。 LSH已经被推广到其他形式的相似性函数（与把距离作为不相似函数相反）如余弦相似性
 
 \footnote{这里需要注意的是，Charikar等人用的相似性函数不完全是余弦相似性。两个点$p$和$q$的距离用$\theta$/$\pi$来计算，其中$\theta$是两个点在原点处的夹角，使得相似性函数变为$\left(1-\frac{\theta}{\pi}\right)$。这个相似性函数可以跟余弦相似度是直接对应的关系}。
 
@@ -370,8 +370,44 @@ q_c = \arg \max_{q\in Q.S}\frac{\sum_{q'\in Q.S}\frac{\mathcal{K}(q',q)}{\sqrt{\
 
 对于我们的算法一个理论上的分析会让我们更好地理解这些算法的效率。对我们算法运行时间进行严格的分析是我们未来在这个方向工作的一部分。
 
-\section{引用}
-
-略
+\section{参考文献}
+\renewcommand{\section}[2]{}
+\begin{thebibliography}{1}
+\bibitem{1} R. Bayardo, Y. Ma, and R. Srikant. Scaling Up All
+Pairs Similarity Search. In Proceedings of the 16th
+Intl. Conf. on World Wide Web, 2007.
+\bibitem{2} R. M. Bell and Y. Koren. Lessons from the Netflix
+Prize Challenge. SIGKDD Explor. Newsl., 2007.
+\bibitem{3} J. Bennett and S. Lanning. The Netflix Prize. In Proc.
+KDD Cup and Workshop, 2007.
+\bibitem{4} A. Beygelzimer, S. Kakade, and J. Langford. Cover
+Trees for Nearest Neighbor. Proceedings of the 23rd
+Intl. Conf. on Machine Learning, 2006.
+\bibitem{5} C. L. Blake and C. J. Merz. UCI Machine Learning
+Repository. http://archive.ics.uci.edu/ml/, 1998.
+\bibitem{6} L. Cayton and S. Dasgupta. A Learning Framework
+for Nearest Neighbor Search. Advances in Neural Info.
+Proc. Systems 20, 2007.
+\bibitem{7} M. S. Charikar. Similarity Estimation Techniques from
+Rounding Algorithms. In Proceedings of the 34th
+annual ACM Symp. on Theory of Comp., 2002.
+\bibitem{8} P. Ciaccia and M. Patella. PAC Nearest Neighbor
+Queries: Approximate and Controlled Search in
+High-dimensional and Metric spaces. Proceedings of
+16th Intl. Conf. on Data Engineering, 2000.
+\bibitem{9} K. Clarkson. Nearest-neighbor Searching and Metric
+Space Dimensions. Nearest-Neighbor Methods for
+Learning and Vision: Theory and Practice, 2006.
+\bibitem{10} S. Dasgupta and Y. Freund. Random projection trees
+and low dimensional manifolds. In Proceedings of the
+40th annual ACM Symp. on Theory of Comp., 2008.
+\bibitem{11} S. C. Deerwester, S. T. Dumais, T. K. Landauer,
+G. W. Furnas, and R. A. Harshman. Indexing by
+Latent Semantic Analysis. Journal of the American
+Society of Info. Science, 1990.
+\bibitem{12} G. Dror, N. Koenigstein, Y. Koren, and M. Weimer.
+The Yahoo! Music Dataset and KDD-Cup’11. Journal
+Of Machine Learning Research, 2011.
+\end{thebibliography}
 
 \end{document}
