@@ -9,13 +9,8 @@
 
 # 编译
 
-## Linux
 
-```
-??
-```
-
-## Mac
+## Mac(MacTex) or Linux(LiveTex)
 
 ```
 xelatex --synctex -interaction=nonstopmode -file-line-error translation
