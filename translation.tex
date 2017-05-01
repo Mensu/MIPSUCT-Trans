@@ -6,6 +6,10 @@
 \usepackage[inline]{enumitem}
 \usepackage{amsfonts}
 \usepackage[margin=15mm]{geometry}
+\usepackage[dvipdfm]{graphicx}
+\DeclareGraphicsExtensions{.eps,.mps,.pdf,.jpg,.png}
+\DeclareGraphicsRule{*}{eps}{*}{}
+\graphicspath{{./jpg/}}
 
 \begin{document}
 \title{锥树最大内积搜索}
@@ -52,6 +56,8 @@ E.1 [数据结构]: 树; G.4 [数学软件]: 算法设计与分析; H.2.8 [数�
 \section{最大内积搜索}
 现在已经有许多欧几里德度量空间中的最近邻搜索技术（见一些调查，如\cite{9}）。大规模的针对余弦相似度测度\cite{1}的最佳匹配算法也已经建立起来，而他们的关注点大多都在文本数据上。（度量空间中的）最近邻搜索的问题也已经用广泛流行的局部敏感哈希（LSH）\cite{14,18}大致地解决了。LSH 已经被推广到其他形式的相似性函数（与把距离作为不相似函数相反），如余弦相似性\cite{7}\footnote{这里需要注意的是，Charikar 等人\cite{7}用的相似性函数不完全是余弦相似性，因为$p$和$q$两点的距离用的是$\theta$/$\pi$，其中$\theta$是两个点在原点处的夹角，使得相似性函数变为$\left(1-\frac{\theta}{\pi}\right)$。这个相似性函数可以和余弦相似度直接对应。}。
 在满足特定条件的情况下，核函数上近似的最大核操作也可以通过LSH高效地解决。降维\cite{30}和双树算法\cite{20}也被用来高效地解决近似的最大核操作。
+
+\includegraphics[width=300pt,clip,trim=30 0 0 0]{fig01.jpg}
 
 \subsection{最大内积搜索和已有问题的不同}
 这里我们解释下为什么最大内积搜索和其它已有的搜索问题都不太一样。因此用于解决那些问题的技术（如LSH）不能直接应用于这个问题。
@@ -110,14 +116,21 @@ p &= \arg \max_{r \in S} \frac{\langle q,r \rangle}{\|q\|\|r\|} = \arg \max_{r \
 
 球树\cite{29, 28}是二元空间分割树，它被十分广泛地应用于各种对数据集进行索引的任务中。这个树中的所有节点代表一个点的集合，每个节点用包围着这个点集中所有点的球的球心进行索引。一个节点上的点集被分成两个不相交的集合来形成两个子节点，把空间分割为（可能重叠的）两个超球。树是分层构建的，如果一个节点包含的点的大小小于一个阈值$N_0$，那么这个节点就被作为叶子节点。
 
+\includegraphics[width=300pt,clip,trim=50 0 0 0]{fig02.jpg}
+\includegraphics[width=250pt,clip,trim=0 0 0 -30]{fig03.jpg}
+
 \subsection{树的构建}
 
 我们用一个简单的启发式的建树方法 ------ 先近似地选择两个相距最远\cite{28}的主元点，然后通过把点分配给距离它们最近的主元来分割数据。这种启发式背后的直觉在于这些两个点可能位于主方向上。这个基于分割和递归的完整方法在算法1和算法2中给出。
+
+\includegraphics[width=250pt,clip,trim=10 0 0 0]{fig04.jpg}
 
 \subsection{分支定界算法}
 
 球树在最近邻搜索中被广泛地运用，而且它是已知的相对容易被拓展到高维\cite{28, 26}的数据中的数据结构。树的搜索通常会使用深度优先的分支定界算法 ------ 对于一个查询，需要深度优先地遍历这棵树，首先遍历和查询点更接近的点的节点，然后用三角不等式限制住和别的分支可能的最小的距离的界。如果这个到这个分支的最小距离大于到目前的最近邻的距离，那么这个分支就会从计算中被移除。
 一个类似的贪心深度优先搜索可以被用与最大内积搜索中，不过对遍历的节点选择会最大化节点中可能存在的点和查询点最大内积，而不是选择遍历和查询点相距更近的节点。递归的分支定界算法在算法4中给出。对于一个查询（$q$），算法从树的根部开始（算法 5)。在每一步中，算法都处在一个当前的节点（$T$）。检查这个节点中所有的点和查询点的可能的最大内积，$\mathbf{MIP}(q,T)$，是否比当前对于查询的最佳匹配（$q.bm$）更好。如果这个检查失败，就不会再去遍历树的这个分支。否则，算法将递归地遍历这棵树，深度优先地查看那些可能会有更好匹配的那些分支。如果这个节点是一个叶子节点，那么算法就只需要在这个节点中线性查找最佳的匹配。这个算法保证在结束时会给出一个精确的解（即最大内积）。
+
+\includegraphics[width=300pt,clip,trim=45 0 0 0]{fig05.jpg}
 
 \subsubsection{用球来限制最大内积}
 
@@ -212,6 +225,9 @@ p &= \arg \max_{r \in S} \frac{\langle q,r \rangle}{\|q\|\|r\|} = \arg \max_{r \
 \begin{equation}
 \langle q^*,p^* \rangle = \|p^*\|\|q^*\|\cos(\phi-(\omega_p+\omega_q)).
 \end{equation}
+
+\includegraphics[width=250pt,clip,trim=10 0 0 0]{fig06.jpg}
+
 用$\theta_p$和$\theta_q$来替换上面那个等式中的$\omega_p$和$\omega_q$（和定理3.1的证明类似），我们有：
 \begin{align*}
 \langle q^*,p^* \rangle =
@@ -230,6 +246,9 @@ p &= \arg \max_{r \in S} \frac{\langle q,r \rangle}{\|q\|\|r\|} = \arg \max_{r \
 \end{equation*}
 有趣的是，当包含查询点的球中减少至一个点时，也就是$R_q = 0$时，这个上界就退化成定理3.1的上界了。
 
+\includegraphics[width=250pt,clip,trim=20 0 0 0]{fig07.jpg}
+\includegraphics[width=250pt,clip,trim=0 0 0 0]{fig08.jpg}
+
 \section{锥树}
 在等式1中，取得内积最大值的点$p$，与查询点$q$的范数$\|q\|$无关。令$\theta_{q,r}$为$q$和$r$在原点处的夹角，那么搜索最大内积的任务也就是找到一个点$p \in S$使得：
 \begin{equation}
@@ -238,7 +257,7 @@ p = \arg \max_{r \in S}\|r\|\cos\theta_{q,r}
 这也就是说只有查询点的方向会影响结果。每个球提供了内积的一个界是因为它们同时限制了向量的范数和方向。然而因为范数跟查询没有关系，就不需要在球中索引它了（也就是限制它的范数），只有它们的方向的范围需要被限制。基于这个原因，我们提出基于查询点的方向（从原点出发）来对查询进行索引，来形成一个锥树。这些查询点用一些（可能重叠）的开放的锥形来进行分级索引。每个点都表示成向量，对应它们的中轴，以及一个角度，对应它们的孔径
 \footnote{一个锥的孔径是中轴和边缘夹角的两倍}。
 \subsection{锥树的建立}
-锥树的建立和球树的建立十分类似。它们之间唯一的区别就是在分割点时使用了余弦相似度而不是欧氏距离。（详见图8的伪代码）
+锥树的建立和球树的建立十分类似。它们之间唯一的区别就是在分割点时使用了余弦相似度而不是欧氏距离。（详见图8的算法）
 
 \subsection{锥形球的界}
 因为查询的范数不会影响等式10中的结果，我们假定所有的查询都具有单位范数。
@@ -250,6 +269,9 @@ p = \arg \max_{r \in S}\|r\|\cos\theta_{q,r}
 \end{equation}
 其中$\phi$是$p_0$与$q_0$在原点处的夹角，函数$\{x\}_+ = \max\{x,0\}$。
 \end{theorem3}
+
+\includegraphics[width=300pt,clip,trim=55 0 0 0]{fig09.jpg}
+
 \begin{proof}[证明]
 这里有两种需要考虑的情况：
 \begin{enumerate}[label={\roman*}]
@@ -273,12 +295,15 @@ p = \arg \max_{r \in S}\|r\|\cos\theta_{q,r}
 & \le \|p^*\|\cos(\phi - \omega_q - \omega_p).
 \end{aligned}
 \end{equation}
+
 用$\|p_0\|$，$r_p$和$\theta_p$来表示$\|p^*\|$和$\omega_p$，接下来最大化$\theta_p$，用$r_p \le R_p$这些事实，我们可以得到：
 \begin{equation}
 \max_{q\in\mathcal{C}_{q_0}^{\omega_q},p\in\mathcal{B}_{p_0}^{R_p}} \|p\|\cos\theta_{q,p} \le \|p_0\|\cos(\phi - \omega_q) + R_p
 \end{equation}
 把情况（i）和（ii）结合起来，我们就得到了式11。
 \end{proof}
+
+\includegraphics[width=250pt,clip,trim=10 0 -10 0]{fig10.jpg}
 
 \begin{table}[]
 \centering
@@ -436,6 +461,8 @@ Y!-Music    & 51         & 624,961       & 1,000,990 \\
 \end{enumerate*}。
 
 我们同样考虑了一个更一般的问题，也就是对于查询$q$检索在集合$S$中第$k$大的内积的点。这和第$k$近邻搜索问题十分类似，我们同样对我们的算法在图11中给出了当$k$ = 1，2，5和10时，相对于线性查找的加速比。
+
+\includegraphics[width=250pt,clip,trim=0 0 0 0]{fig11.jpg}
 
 \section{最大核操作和一般的核函数}
 在这一节中，我们提供了一些讨论，关于如何在不显式地把点表示成内积空间中的条件下，把前面提出的那些算法应用到一个内积空间中。内积的定义是一个核函数$\mathcal{K}(q,p)=\langle \varphi(q),\varphi(p) \rangle.$
