@@ -8,7 +8,6 @@
 
 \begin{document}
 \title{锥树最大内积搜索}
-\author{薛明淇}
 \maketitle
 
 \begin{abstract}
@@ -345,7 +344,7 @@ R_p^2 = \max_{r\in T.S}\mathcal{K}(p_c,p_c)+\mathcal{K}(r,r) - 2\mathcal{K}(r,p_
 \begin{equation}
 q_c = \arg \max_{q\in Q.S}\frac{\sum_{q'\in Q.S}\frac{\mathcal{K}(q',q)}{\sqrt{\mathcal{K}(q',q')}}}{\mathcal{K}(r,r)}
 \end{equation}
-再次，这个计算时间对于数据集的大小来说是二次的，但是可以给搜索时间提高效率。半孔径的余弦值为：
+同样，这个计算时间对于数据集的大小来说是二次的，但是可以给搜索时间提高效率。半孔径的余弦值为：
 \begin{equation}
 \cos\omega_q = \min_{q \in Q.S}\frac{\mathcal{K}(q_c, q)}{\sqrt{\mathcal{K}(q_c, q_c)\mathcal{K}(q,q)}}
 \end{equation}
@@ -357,7 +356,7 @@ q_c = \arg \max_{q\in Q.S}\frac{\sum_{q'\in Q.S}\frac{\mathcal{K}(q',q)}{\sqrt{\
 \begin{equation*}
 \cos\phi = \frac{\mathcal{K}(p_c, q_c)}{\sqrt{\mathcal{K}(q_c, q_c)\mathcal{K}(p_c,p_c)}}
 \end{equation*}
-这个界的计算效率是很高的，是因为他只需要一个核函数的求职（$\mathcal{K}(q_c, q_c)$和$\mathcal{K}(p_c,p_c)$两项可以被提前计算出来并且存在树中）。
+这个界的计算效率是很高的，是因为他只需要一个核函数的求值（$\mathcal{K}(q_c, q_c)$和$\mathcal{K}(p_c,p_c)$两项可以被提前计算出来并且保存在树中）。
 
 \section{结论}
 
