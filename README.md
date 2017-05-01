@@ -1,4 +1,6 @@
-# 分工明细
+# 数据库作业2
+
+## 分工明细
 
 |  成员  |   学号   |   分工 |
 |:------:|:-------:|:-----:|
@@ -7,11 +9,4 @@
 | 杨奕嘉 | 15331366 | 抱大腿 |
 | 薛明淇 | 15331344 | 大腿 solo |
 
-# 编译
 
-
-## Mac(MacTex) or Linux(LiveTex)
-
-```
-xelatex --synctex -interaction=nonstopmode -file-line-error translation
-```
