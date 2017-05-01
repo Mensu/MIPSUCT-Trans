@@ -1,10 +1,11 @@
-\documentclass[twocolumn,a4paper]{article}
+\documentclass[twocolumn]{article}
 
 \usepackage{ctex}
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage[inline]{enumitem}
 \usepackage{amsfonts}
+\usepackage[margin=15mm]{geometry}
 
 \begin{document}
 \title{锥树最大内积搜索}
@@ -279,6 +280,47 @@ p = \arg \max_{r \in S}\|r\|\cos\theta_{q,r}
 把情况（i）和（ii）结合起来，我们就得到了式11。
 \end{proof}
 
+\begin{table}[]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Dataset     & Dimensions & Reference set & Query Set \\
+\hline
+Bio         & 74         & 210,409       & 75,000    \\
+\hline
+Corel       & 32         & 27,749        & 10,000    \\
+\hline
+Covertype   & 55         & 431,012       & 150,000   \\
+\hline
+LCDM        & 3          & 10,777,216    & 6,000,000 \\
+\hline
+LiveJournal & 25,327     & 121,625       & 100,000   \\
+\hline
+MNIST       & 786        & 60,000        & 10,000    \\
+\hline
+MovieLens   & 51         & 3,706         & 6,040     \\
+\hline
+Netflix     & 51         & 17,770        & 480,189   \\
+\hline
+OptDigits   & 64         & 1,347         & 450       \\
+\hline
+Pall7       & 7          & 100,841       & 100,841   \\
+\hline
+Physics     & 78         & 112,500       & 37,500    \\
+\hline
+PSF         & 2          & 3,056,092     & 3,056,092 \\
+\hline
+SJ2         & 2          & 50,000        & 50,000    \\
+\hline
+U-Random    & 20         & 700,000       & 300,000   \\
+\hline
+Y!-Music    & 51         & 624,961       & 1,000,990 \\
+\hline
+\end{tabular}
+\caption{用于评估的数据集}
+\label{table1}
+\end{table}
+
 \section{实验与结果}
 在这一节，我们将对算法5（SB - Single Ball Tree）和算法7的效率进行评估。对于双树的算法，我们用了它的两个变体 --
 \begin{enumerate*}[label={\roman*}]
@@ -300,8 +342,90 @@ p = \arg \max_{r \in S}\|r\|\cos\theta_{q,r}
 
 表6（R）最后一列的数字告诉我们建树时间相对于真正线性查找的运行时间是有多小。最高的比例只有OptDigits数据集的0.15。这就代表查找时只要比线性查找快1.18倍就可以弥补建树的代价。对于更多的数据集，这个比例还要更小。而且，建树的代价只有一次。当一棵树已经建好之后，它就可以多次地被用作查询。
 
+\begin{table}[]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Dataset     & Dimensions & Reference set & Query Set \\
+\hline
+Bio         & 74         & 210,409       & 75,000    \\
+\hline
+Corel       & 32         & 27,749        & 10,000    \\
+\hline
+Covertype   & 55         & 431,012       & 150,000   \\
+\hline
+LCDM        & 3          & 10,777,216    & 6,000,000 \\
+\hline
+LiveJournal & 25,327     & 121,625       & 100,000   \\
+\hline
+MNIST       & 786        & 60,000        & 10,000    \\
+\hline
+MovieLens   & 51         & 3,706         & 6,040     \\
+\hline
+Netflix     & 51         & 17,770        & 480,189   \\
+\hline
+OptDigits   & 64         & 1,347         & 450       \\
+\hline
+Pall7       & 7          & 100,841       & 100,841   \\
+\hline
+Physics     & 78         & 112,500       & 37,500    \\
+\hline
+PSF         & 2          & 3,056,092     & 3,056,092 \\
+\hline
+SJ2         & 2          & 50,000        & 50,000    \\
+\hline
+U-Random    & 20         & 700,000       & 300,000   \\
+\hline
+Y!-Music    & 51         & 624,961       & 1,000,990 \\
+\hline
+\end{tabular}
+\caption{树的建立时间（秒）与线性搜索的时间（秒）的对比}
+\label{table2}
+\end{table}
+
 \paragraph{查找效率}
 相对于线性查找，查找效率的提升在表6中给出。总体来说，加速比从低至OptDigits的1.13到LCDM和PSF数据集的$10^5$（4个数量级）那么多。重要的是，需要注意所有加速比很低的（比一个数量级还小）使用单个球的算法，三个算法的加速比都十分低，相对还是具有可比性的。然而，甚至加速比达到2了之后对于绝对的速度提升也是十分显著的。比如对于Yahoo!Music数据集，2的加速比加上120秒的建树时间节省了总共19小时的计算时间。对于绝大多数对于单个球的算法具有很高加速比的数据集，双树算法的加速比也非常高。
+
+\begin{table}[]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Dataset     & Dimensions & Reference set & Query Set \\
+\hline
+Bio         & 74         & 210,409       & 75,000    \\
+\hline
+Corel       & 32         & 27,749        & 10,000    \\
+\hline
+Covertype   & 55         & 431,012       & 150,000   \\
+\hline
+LCDM        & 3          & 10,777,216    & 6,000,000 \\
+\hline
+LiveJournal & 25,327     & 121,625       & 100,000   \\
+\hline
+MNIST       & 786        & 60,000        & 10,000    \\
+\hline
+MovieLens   & 51         & 3,706         & 6,040     \\
+\hline
+Netflix     & 51         & 17,770        & 480,189   \\
+\hline
+OptDigits   & 64         & 1,347         & 450       \\
+\hline
+Pall7       & 7          & 100,841       & 100,841   \\
+\hline
+Physics     & 78         & 112,500       & 37,500    \\
+\hline
+PSF         & 2          & 3,056,092     & 3,056,092 \\
+\hline
+SJ2         & 2          & 50,000        & 50,000    \\
+\hline
+U-Random    & 20         & 700,000       & 300,000   \\
+\hline
+Y!-Music    & 51         & 624,961       & 1,000,990 \\
+\hline
+\end{tabular}
+\caption{与线性搜索相比的速度倍数}
+\label{my-label}
+\end{table}
 
 还有三件非常重要的事需要注意。首先，如单个树的算法（算法5）加速比不高的话，双树算法（算法7）也不会有特别好的表现。这很大程度上是因为树无法找到非常严格的界，所以需要遍历非常多的分支。双树的算法放松了界限来把遍历的代价均摊到每个查询上。但是如果这个界对于算法5来说比较差，对于双树的界就会更差。因此，双树算法没有表现出任何显著的速度提升。
 第二，当查询的数据集数量非常大的时候，双树算法（尤其是“dual ball-cone”算法）就开始显著地单个树算法更优秀。这对于双树算法来说是一个很普遍的状况。查询集一定要足够大，才能使遍历参考树的效率均摊到查询上之后，超过遍历查询树本身的开销。

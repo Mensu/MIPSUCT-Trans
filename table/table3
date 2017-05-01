@@ -1,23 +1,40 @@
 \begin{table}[]
 \centering
-\begin{tabular}{cccc}
+\begin{tabular}{|c|c|c|c|}
+\hline
 Dataset     & Dimensions & Reference set & Query Set \\
+\hline
 Bio         & 74         & 210,409       & 75,000    \\
+\hline
 Corel       & 32         & 27,749        & 10,000    \\
+\hline
 Covertype   & 55         & 431,012       & 150,000   \\
+\hline
 LCDM        & 3          & 10,777,216    & 6,000,000 \\
+\hline
 LiveJournal & 25,327     & 121,625       & 100,000   \\
+\hline
 MNIST       & 786        & 60,000        & 10,000    \\
+\hline
 MovieLens   & 51         & 3,706         & 6,040     \\
+\hline
 Netflix     & 51         & 17,770        & 480,189   \\
+\hline
 OptDigits   & 64         & 1,347         & 450       \\
+\hline
 Pall7       & 7          & 100,841       & 100,841   \\
+\hline
 Physics     & 78         & 112,500       & 37,500    \\
+\hline
 PSF         & 2          & 3,056,092     & 3,056,092 \\
+\hline
 SJ2         & 2          & 50,000        & 50,000    \\
+\hline
 U-Random    & 20         & 700,000       & 300,000   \\
-Y!-Music    & 51         & 624,961       & 1,000,990
+\hline
+Y!-Music    & 51         & 624,961       & 1,000,990 \\
+\hline
 \end{tabular}
-\caption{表3：与线性搜索相比的速度倍数}
+\caption{与线性搜索相比的速度倍数}
 \label{my-label}
 \end{table}
