@@ -1,0 +1,23 @@
+\begin{table}[]
+\centering
+\begin{tabular}{cccc}
+Dataset     & Dimensions & Reference set & Query Set \\
+Bio         & 74         & 210,409       & 75,000    \\
+Corel       & 32         & 27,749        & 10,000    \\
+Covertype   & 55         & 431,012       & 150,000   \\
+LCDM        & 3          & 10,777,216    & 6,000,000 \\
+LiveJournal & 25,327     & 121,625       & 100,000   \\
+MNIST       & 786        & 60,000        & 10,000    \\
+MovieLens   & 51         & 3,706         & 6,040     \\
+Netflix     & 51         & 17,770        & 480,189   \\
+OptDigits   & 64         & 1,347         & 450       \\
+Pall7       & 7          & 100,841       & 100,841   \\
+Physics     & 78         & 112,500       & 37,500    \\
+PSF         & 2          & 3,056,092     & 3,056,092 \\
+SJ2         & 2          & 50,000        & 50,000    \\
+U-Random    & 20         & 700,000       & 300,000   \\
+Y!-Music    & 51         & 624,961       & 1,000,990
+\end{tabular}
+\caption{表3：与线性搜索相比的速度倍数}
+\label{my-label}
+\end{table}
