@@ -3,7 +3,7 @@
 #include "BallTree.h"
 #include "Utility.h"
 
-#define YAHOO
+#define NETFLIX
 
 #ifdef MNIST
 char dataset[L] = "Mnist";
@@ -14,6 +14,13 @@ int qn = 1000;
 #ifdef YAHOO
 char dataset[L] = "Yahoo";
 int n = 624, d = 300;
+int qn = 1000;
+#endif
+
+#ifdef NETFLIX
+char dataset[L] = "Netflix";
+int n = 17770;
+int d = 50;
 int qn = 1000;
 #endif
 
