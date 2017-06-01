@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "Utility.h"
 #include "record.h"
@@ -96,6 +97,33 @@ class NormalStorage : public RecordStorage {
   private:
     Path& dest_dir_;
 };
+
+/**
+ * simple storage for algorithm testing
+ */
+class SimpleStorage : public RecordStorage {
+  public:
+    virtual Rid Put(const Record& record) override {
+        Rid ret(counter, 0);
+        s_.insert({counter++, record});
+        return ret;
+    }
+    virtual std::unique_ptr<Record> Get(const Rid& rid) override {
+        auto iter = s_.find(rid.page_id);
+        if (iter == end(s_)) {
+            return nullptr;
+        }
+        return std::make_unique<Record>(iter->second);
+    }
+    virtual void DumpTo(const Path& dest_dir) override {
+        // no-op
+    }
+
+  private:
+    int counter = 0;
+    std::unordered_map<int, Record> s_;
+};
+
 namespace storage_factory {
 
 inline std::unique_ptr<MemoryOnlyStorage> GetMemoryOnlyStorage() {
@@ -104,5 +132,10 @@ inline std::unique_ptr<MemoryOnlyStorage> GetMemoryOnlyStorage() {
 inline std::unique_ptr<NormalStorage> GetNormalStorage(const Path& dest_dir) {
     return nullptr;
 }
+
+inline std::unique_ptr<SimpleStorage> GetSimpleStorage() {
+    return std::make_unique<SimpleStorage>();
 }
+
+}  // namespace storage_factory
 #endif
