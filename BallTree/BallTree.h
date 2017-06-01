@@ -1,6 +1,7 @@
 #ifndef __BALL_TREE_H
 #define __BALL_TREE_H
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -13,11 +14,161 @@
 
 constexpr int N0 = 20;
 
+namespace detail {
+class MIPSearcher : public BallTreeVisitor {
+  public:
+    MIPSearcher(const std::vector<float>& v, RecordStorage* storage)
+        : needle(v), needle_norm(Norm(needle)), storage_(storage) {}
+
+    virtual void Visit(const BallTreeBranch* branch) {
+        if (cur_mip_ > PossibleMip(branch)) {
+            return;
+        }
+        double left_mip(PossibleMip(branch->left.get())),
+            right_mip(PossibleMip(branch->right.get()));
+        if (left_mip > right_mip and left_mip > cur_mip_) {
+            branch->left->Accept(*this);
+            if (right_mip > cur_mip_) {
+                branch->right->Accept(*this);
+            }
+        } else if (right_mip >= left_mip and right_mip > cur_mip_) {
+            branch->right->Accept(*this);
+            if (left_mip > cur_mip_) {
+                branch->left->Accept(*this);
+            }
+        }
+    }
+    virtual void Visit(const BallTreeLeaf* leaf) {
+        for (const auto& rid : leaf->data) {
+            auto record = storage_->Get(rid);
+            double innerproduct = InnerProduct(needle, record->data);
+            if (innerproduct > cur_mip_) {
+                cur_mip_ = innerproduct;
+                cur_max_idx_ = record->index;
+            }
+        }
+    }
+
+    int ResultIndex() const {
+        return cur_max_idx_;
+    }
+    double ResultMIP() const {
+        return cur_mip_;
+    }
+
+  private:
+    double PossibleMip(const BallTreeNode* node) {
+        return InnerProduct(needle, node->center) + node->radius * needle_norm;
+    }
+
+    const std::vector<float>& needle;
+    const double needle_norm;
+    int cur_max_idx_ = -1;
+    double cur_mip_ = 0;
+    RecordStorage* storage_;
+};
+}
+
 class BallTreeImpl {
   public:
-    std::unique_ptr<BallTreeNode> BuildTree(
-        std::vector<Record::Pointer>&& data) {
-        return nullptr;
+    using Records = std::vector<Record::Pointer>;
+
+    std::vector<Rid> StoreAll(const Records& records) {
+        std::vector<Rid> ret;
+        ret.reserve(records.size());
+        std::transform(
+            begin(records), end(records), std::back_inserter(ret),
+            [this](Record::Pointer& record) {
+                return record_storage_->Put(*record);
+            });
+        return ret;
+    }
+
+    BallTreeLeaf::Pointer BuildTreeLeaf(const Records& records) {
+        std::vector<Rid> rids(StoreAll(records));
+        std::vector<float> center(CalculateCenter(records));
+        double radius(CalculateRadius(records, center));
+        return BallTreeLeaf::Create(std::move(center), radius, std::move(rids));
+    }
+
+    std::vector<float> CalculateCenter(const Records& records) {
+        assert(records.size() > 0);
+        std::vector<float> center(records.front()->Size(), 0);
+        for (auto& record : records) {
+            Combine(center, record->data, std::plus<float>());
+        }
+        auto s = records.size();
+        ApplyElementwise(center, [s](float x) { return x / s; });
+        return center;
+    }
+
+    double CalculateRadius(
+        const Records& records, const std::vector<float>& center) {
+        return std::accumulate(
+            begin(records), end(records), 0.0,
+            [&center](double acc, Record::Pointer& record) {
+                return std::max(Distance(center, record->data), acc);
+            });
+    }
+
+    Record* ChooseFarthest(const Records& records, Record* pivot) {
+        double max_distance = 0;
+        Record* result = pivot;
+        for (auto& record : records) {
+            double new_distance = Distance(record->data, pivot->data);
+            if (new_distance > max_distance) {
+                max_distance = new_distance;
+                result = record.get();
+            }
+        }
+        return result;
+    }
+
+    std::pair<Record*, Record*> PickPivots(const Records& records) {
+        assert(records.size() >= 2);
+        auto& arbitrary(records.front());
+        Record* a = ChooseFarthest(records, arbitrary.get());
+        Record* b = ChooseFarthest(records, a);
+        return {a, b};
+    }
+
+    std::pair<Records, Records> SplitRecord(
+        Records&& records, Record* a, Record* b) {
+        auto mid = std::partition(
+            begin(records), end(records),
+            [a, b](const Record::Pointer& record) {
+                return Distance(record->data, a->data) <
+                       Distance(record->data, b->data);
+            });
+        return std::make_pair(
+            Records(
+                std::make_move_iterator(begin(records)),
+                std::make_move_iterator(mid)),
+            Records(
+                std::make_move_iterator(mid),
+                std::make_move_iterator(end(records))));
+    }
+
+    std::pair<Records, Records> SplitRecord(Records&& records) {
+        Record *a, *b;
+        std::tie(a, b) = PickPivots(records);
+        return SplitRecord(std::move(records), a, b);
+    }
+
+    BallTreeBranch::Pointer BuildTreeBranch(Records&& data) {
+        std::vector<float> center(CalculateCenter(data));
+        double radius(CalculateRadius(data, center));
+        std::pair<Records, Records> split_result(SplitRecord(std::move(data)));
+        return BallTreeBranch::Create(
+            std::move(center), radius, BuildTree(std::move(split_result.first)),
+            BuildTree(std::move(split_result.second)));
+    }
+
+    BallTreeNode::Pointer BuildTree(Records&& records) {
+        if (records.size() <= N0) {
+            return BuildTreeLeaf(records);
+        }
+        return BuildTreeBranch(std::move(records));
     }
 
     /**
@@ -28,7 +179,7 @@ class BallTreeImpl {
     /**
      * build the balltree from plain index and vector data
      */
-    BallTreeImpl(std::vector<Record::Pointer>&& data)
+    BallTreeImpl(Records&& data)
         : record_storage_(storage_factory::GetMemoryOnlyStorage()) {
         // TODO
     }
@@ -42,7 +193,15 @@ class BallTreeImpl {
      * returns the index of the vector with the maximum inner product with the
      * vector given
      */
-    bool Search(const std::vector<float>& v);
+    int Search(const std::vector<float>& v) {
+        if (not root_) {
+            assert(false && "root is nullptr!");
+            return -1;
+        }
+        detail::MIPSearcher visitor(v, record_storage_.get());
+        root_->Accept(visitor);
+        return visitor.ResultIndex();
+    }
 
     /**
      * insert given vector to the balltree
