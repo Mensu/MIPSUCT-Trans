@@ -18,10 +18,29 @@ class BallTreeVisitor {
 };
 
 struct BallTreeNode {
+    using Pointer = std::unique_ptr<BallTreeNode>;
+
     virtual void Accept(BallTreeVisitor& v) const = 0;
 };
 
 struct BallTreeBranch : BallTreeNode {
+    using Pointer = std::unique_ptr<BallTreeBranch>;
+
+    static Pointer Create(
+        std::vector<float>&& center, double radius, BallTreeNode::Pointer left,
+        BallTreeNode::Pointer right) {
+        return std::make_unique<BallTreeBranch>(
+            std::move(center), radius, std::move(left), std::move(right));
+    }
+
+    BallTreeBranch(
+        std::vector<float>&& center, double radius, BallTreeNode::Pointer left,
+        BallTreeNode::Pointer right)
+        : left(std::move(left)),
+          right(std::move(right)),
+          center(std::move(center)),
+          radius(radius) {}
+
     virtual void Accept(BallTreeVisitor& v) const override {
         v.Visit(this);
     }
@@ -31,10 +50,19 @@ struct BallTreeBranch : BallTreeNode {
     double radius;
 };
 
-struct BallTreeLeaf : BallTreeBranch {
+struct BallTreeLeaf : BallTreeNode {
+    using Pointer = std::unique_ptr<BallTreeLeaf>;
+
+    static Pointer Create(std::vector<Rid>&& data) {
+        return std::make_unique<BallTreeLeaf>(std::move(data));
+    }
+
+    BallTreeLeaf(std::vector<Rid>&& data) : data(std::move(data)) {}
+
     virtual void Accept(BallTreeVisitor& v) const override {
         v.Visit(this);
     }
+
     std::vector<Rid> data;
 };
 

@@ -1,8 +1,6 @@
 #ifndef __BALL_TREE_H
 #define __BALL_TREE_H
 
-#define N0 20
-
 #include <iostream>
 #include <memory>
 #include <stdexcept>
@@ -13,8 +11,15 @@
 #include "record.h"
 #include "storage.h"
 
+constexpr int N0 = 20;
+
 class BallTreeImpl {
   public:
+    std::unique_ptr<BallTreeNode> BuildTree(
+        std::vector<Record::Pointer>&& data) {
+        return nullptr;
+    }
+
     /**
      * build the balltree from index file
      */
@@ -23,15 +28,9 @@ class BallTreeImpl {
     /**
      * build the balltree from plain index and vector data
      */
-    BallTreeImpl(const std::vector<Record>& data) {
+    BallTreeImpl(std::vector<Record::Pointer>&& data)
+        : record_storage_(storage_factory::GetMemoryOnlyStorage()) {
         // TODO
-        for (const auto& r : data) {
-            std::cout << r.index << ' ' << r.data.size() << '\n';
-            for (const auto& d : r.data) {
-                std::cout << d << ' ';
-            }
-            std::cout << '\n';
-        }
     }
 
     /**
@@ -57,17 +56,18 @@ class BallTreeImpl {
 
   private:
     std::unique_ptr<BallTreeNode> root_;
+    std::unique_ptr<RecordStorage> record_storage_;
 };
 
 class BallTree {
   public:
     bool buildTree(int n, int d, float** data) {
-        std::vector<Record> v;
+        std::vector<Record::Pointer> v;
         v.reserve(n);
 
         for (int i = 0; i < n; ++i) {
-            v.push_back(
-                Record(i + 1, std::vector<float>(data[i], data[i] + d)));
+            v.push_back(Record::Create(
+                i + 1, std::vector<float>(data[i], data[i] + d)));
         }
 
         impl_ = std::make_unique<BallTreeImpl>(v);
