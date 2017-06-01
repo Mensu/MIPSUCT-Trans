@@ -15,17 +15,27 @@
  * FixedLengthStorage manage the allocation/deallocation of fixed length bytes
  * in internal and external storage, ignoring what those bytes actually
  * represents
+ * @tparam MaxPageInMemory set to -1 when no limitation
  */
-template <int64_t BytesPerPage, bool OmitZeroInNameOfFirstPage = true>
+template <
+    int64_t BytesPerPage, int64_t MaxPageInMemory = -1,
+    bool OmitZeroInNameOfFirstPage = true>
 class FixedLengthStorage {
   public:
-    FixedLengthStorage(const std::string& name, int record_size);
+    FixedLengthStorage(int record_size_) {
+        static_assert(
+            MaxPageInMemory == -1,
+            "only memory only storage can use this constructor");
+    }
 
-    Rid Store(const std::vector<Byte>& v) {
+    FixedLengthStorage(
+        int record_size, const std::string& name, const Path& dest_dir);
+
+    Rid Put(const std::vector<Byte>& v) {
         assert(v.size() == record_size_);
     }
 
-    Byte* Retrieve(const Rid& rid);
+    Byte* Get(const Rid& rid);
 
     int RecordSize() const {
         return record_size_;
@@ -33,45 +43,66 @@ class FixedLengthStorage {
 
   private:
     int record_size_;
-    std::string name_;
-    // vector<char*> buffer_pool_; // need better representation
+    std::unique_ptr<std::string> name_;
+    std::unique_ptr<Path> dest_dir;
+    // vector<Byte*> buffer_pool_; // need better representation
 };
 
-class Storage {
+class MemoryOnlyStorage;
+class NormalStorage;
+
+class RecordStorage {
   public:
-    /**
-     * initialize a storage without the external storage path specified,
-     * all store action happens in main memory until explicitly set the storage
-     * directory
-     */
-    Storage();
-
-    /**
-     * initialize the storage with the external directory path, enabling the
-     * external storage
-     */
-    Storage(const Path& storage_dir);
-
     /**
      * stores record to the storage and returns the rid pointing to the
      * record, may first try to store in memory, then
      * flush to file if specified
      */
-    Rid SaveRecord(const Record&) {
-        // TODO
-        return Rid(0, 0);
-    }
+    virtual Rid Put(const Record&) = 0;
 
     /**
      * finds the record specified by rid
      * @return nullptr if not found
      */
-    std::unique_ptr<Record> GetRecord(const Rid& rid) {
-        return nullptr;
-    }
+    virtual std::unique_ptr<Record> Get(const Rid& rid) = 0;
 
-  private:
-    std::unique_ptr<Path> storage_dir_;
+    /**
+     * dump all data to specific path,
+     */
+    virtual void DumpTo(const Path& dest_dir) = 0;
 };
 
+/**
+ * uses only memory to store data
+ */
+class MemoryOnlyStorage : public RecordStorage {
+  public:
+    virtual Rid Put(const Record& record) override;
+    virtual std::unique_ptr<Record> Get(const Rid& rid) override;
+    virtual void DumpTo(const Path& dest_dir) override;
+};
+
+/**
+ * uses both memory and file to store record
+ */
+class NormalStorage : public RecordStorage {
+  public:
+    NormalStorage(const Path& dest_dir);
+
+    virtual Rid Put(const Record& record) override;
+    virtual std::unique_ptr<Record> Get(const Rid& rid) override;
+    virtual void DumpTo(const Path& dest_dir) override;
+
+  private:
+    Path& dest_dir_;
+};
+namespace storage_factory {
+
+inline std::unique_ptr<MemoryOnlyStorage> GetMemoryOnlyStorage() {
+    return nullptr;
+}
+inline std::unique_ptr<NormalStorage> GetNormalStorage(const Path& dest_dir) {
+    return nullptr;
+}
+}
 #endif
