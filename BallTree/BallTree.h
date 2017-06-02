@@ -33,7 +33,7 @@ class MIPSearcher : public BallTreeVisitor {
             if (left_mip > cur_mip_) {
                 branch->left->Accept(*this);
             }
-        }
+        } 
     }
     virtual void Visit(const BallTreeLeaf* leaf) {
         for (const auto& rid : leaf->data) {

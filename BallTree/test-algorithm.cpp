@@ -1,12 +1,14 @@
 #define BALLTREE_TESTING_ALGORITHM
 
 #include <gtest/gtest.h>
+#include <utility>
 #include "BallTree.h"
 #include "Utility.h"
 
 using std::vector;
 using std::string;
 using std::pair;
+using std::tuple;
 
 namespace {
 
@@ -57,11 +59,13 @@ string QueryPath(const std::string& dataset = kDataset) {
     return string("./") + dataset + "/src/dataset.txt";
 }
 
-class TreeAlgorithmTest : public testing::Test {
+class TreeAlgorithmTest : public testing::TestWithParam<pair<const char*, int>> {
   public:
     virtual void SetUp() {
-        records_ = ReadRecords(DataPath(), kDimension, kRecordSize);
-        queries_ = ReadRecords(QueryPath(), kDimension, kQuerySize);
+        const char* dataset = GetParam().first;
+        int dimension = GetParam().second;
+        records_ = ReadRecords(DataPath(dataset), dimension, kRecordSize);
+        queries_ = ReadRecords(QueryPath(GetParam().first), dimension, kQuerySize);
         standard_answers_ = GetStandardardAnswer(records_, queries_);
     }
 
@@ -98,7 +102,7 @@ std::ostream& operator<<(std::ostream& os, pair<int, double>& p) {
     return os;
 }
 
-TEST_F(TreeAlgorithmTest, HelloWorld) {
+TEST_P(TreeAlgorithmTest, HelloWorld) {
     ASSERT_EQ(records_.size(), kRecordSize);
     ASSERT_EQ(queries_.size(), kQuerySize);
     ASSERT_EQ(standard_answers_.size(), kQuerySize);
@@ -121,12 +125,12 @@ vector<float> CalculateTestCenter(const vector<Record::Pointer>& records) {
     return center_answer;
 }
 
-TEST_F(TreeAlgorithmTest, TestCenter) {
+TEST_P(TreeAlgorithmTest, TestCenter) {
     vector<float> center1(BallTreeImpl::CalculateCenter(records_));
     std::reverse(begin(records_), end(records_));
     vector<float> center2(BallTreeImpl::CalculateCenter(records_));
-    ASSERT_EQ(center1.size(), kDimension);
-    ASSERT_EQ(center2.size(), kDimension);
+    ASSERT_EQ(center1.size(), GetParam().second);
+    ASSERT_EQ(center2.size(), GetParam().second);
     for (int i = 0; i < center1.size(); ++i) {
         EXPECT_NEAR(center1[i], center2[i], 0.00001);
     }
@@ -136,7 +140,7 @@ TEST_F(TreeAlgorithmTest, TestCenter) {
     }
 }
 
-TEST_F(TreeAlgorithmTest, TestRadius) {
+TEST_P(TreeAlgorithmTest, TestRadius) {
     std::vector<float> center(CalculateTestCenter(records_));
     double radius = BallTreeImpl::CalculateRadius(records_, center);
     bool radius_found = false;
@@ -150,7 +154,45 @@ TEST_F(TreeAlgorithmTest, TestRadius) {
     EXPECT_TRUE(radius_found);
 }
 
-TEST_F(TreeAlgorithmTest, TestSearch) {
+testing::AssertionResult IsFarthest(
+    const std::vector<Record::Pointer>& records, Record* pivot,
+    Record* farthest) {
+    double dist = Distance(pivot->data, farthest->data);
+    for (auto& record : records) {
+        double cur_dist = Distance(record->data, pivot->data);
+        if (cur_dist > dist and record->index != farthest->index) {
+            return testing::AssertionFailure()
+                   << record->index << " is farther than " << farthest->index
+                   << " to " << pivot->index << ", with " << cur_dist << " > "
+                   << dist;
+        }
+    }
+    return testing::AssertionSuccess();
+}
+
+TEST_P(TreeAlgorithmTest, TestChooseFarthest) {
+    for (int i = 0; i < records_.size() / 5; ++i) {
+        Record* pivot = records_[i].get();
+        Record* farthest = BallTreeImpl::ChooseFarthest(records_, pivot);
+        EXPECT_TRUE(IsFarthest(records_, pivot, farthest));
+    }
+}
+
+TEST_P(TreeAlgorithmTest, TestSplitRecord) {
+    Record *a, *b;
+    std::tie(a, b) = BallTreeImpl::PickPivots(records_);
+    std::vector<Record::Pointer> left, right;
+    std::tie(left, right) =
+        BallTreeImpl::SplitRecord(std::move(records_), a, b);
+    for (auto& r : left) {
+        EXPECT_TRUE(Distance(r->data, a->data) < Distance(r->data, b->data));
+    }
+    for (auto& r : right) {
+        EXPECT_TRUE(Distance(r->data, a->data) >= Distance(r->data, b->data));
+    }
+}
+
+TEST_P(TreeAlgorithmTest, TestSearch) {
     BallTreeImpl ball_tree(std::move(records_));
     for (int i = 0; i < queries_.size(); ++i) {
         pair<int, double> search_answer = ball_tree.Search(queries_[i]->data);
@@ -159,3 +201,6 @@ TEST_F(TreeAlgorithmTest, TestSearch) {
     }
     std::cout << '\n';
 }
+
+INSTANTIATE_TEST_CASE_P(TestAlgorithmWithThreeDatasets, TreeAlgorithmTest, 
+        testing::Values(std::make_pair("Mnist", 50), std::make_pair("Yahoo", 300), std::make_pair("Netflix", 50)));
