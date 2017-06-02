@@ -176,9 +176,15 @@ class BallTreeImpl {
     /**
      * build the balltree from plain index and vector data
      */
-    BallTreeImpl(Records&& data)
-        : record_storage_(storage_factory::GetMemoryOnlyStorage()) {
-        // TODO
+    BallTreeImpl(Records&& records)
+        :
+#ifdef BALLTREE_TESTING_ALGORITHM
+          record_storage_(storage_factory::GetSimpleStorage())
+#else
+          record_storage_(storage_factory::GetMemoryOnlyStorage())
+#endif
+          ,
+          root_(BuildTree(std::move(records))) {
     }
 
     /**
@@ -190,14 +196,14 @@ class BallTreeImpl {
      * returns the index of the vector with the maximum inner product with the
      * vector given
      */
-    int Search(const std::vector<float>& v) {
+    std::pair<int, double> Search(const std::vector<float>& v) {
         if (not root_) {
             assert(false && "root is nullptr!");
-            return -1;
+            return {-1, 0};
         }
         detail::MIPSearcher visitor(v, record_storage_.get());
         root_->Accept(visitor);
-        return visitor.ResultIndex();
+        return {visitor.ResultIndex(), visitor.ResultMIP()};
     }
 
     /**
@@ -211,14 +217,13 @@ class BallTreeImpl {
     bool Delete(const std::vector<float>& v);
 
   private:
-    std::unique_ptr<BallTreeNode> root_;
     std::unique_ptr<RecordStorage> record_storage_;
+    std::unique_ptr<BallTreeNode> root_;
 };
 
 class BallTree {
   public:
-    static Records ArrayToVector(
-        int n, int d, float** data) {
+    static Records ArrayToVector(int n, int d, float** data) {
         Records v;
         v.reserve(n);
 
@@ -249,7 +254,7 @@ class BallTree {
         if (not impl_) {
             return -1;
         }
-        return impl_->Search(std::vector<float>(query, query + d));
+        return impl_->Search(std::vector<float>(query, query + d)).first;
     }
 
     // optional
