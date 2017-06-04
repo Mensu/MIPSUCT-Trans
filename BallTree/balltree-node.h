@@ -25,6 +25,8 @@ struct BallTreeNode {
     std::vector<float> center;
     double radius;
 
+    virtual ~BallTreeNode() {}
+
   protected:
     BallTreeNode(std::vector<float>&& center, double radius)
         : center(std::move(center)), radius(radius) {}

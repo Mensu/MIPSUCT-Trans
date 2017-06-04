@@ -71,6 +71,8 @@ class RecordStorage {
      * dump all data to specific path,
      */
     virtual void DumpTo(const Path& dest_dir) = 0;
+
+    virtual ~RecordStorage() {}
 };
 
 /**
