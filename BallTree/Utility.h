@@ -11,7 +11,7 @@
 #include <type_traits>
 
 using Path = std::string;
-using Byte = std::uint8_t;
+using Byte = std::int8_t;
 
 bool read_data(int n, int d, float**& data, const char* file_name);
 
@@ -72,6 +72,20 @@ Ret Distance(const Container& v1, const Container& v2) {
 inline Path DirName(const Path& p) {
     auto index = p.find_last_of('/');
     return index == std::string::npos ? "" : p.substr(0, index + 1);
+}
+
+template<typename Iter>
+inline char bitsToByte(Iter start, Iter end) {
+    int i = 0;
+    char ret = 0;
+    for (Iter it = start; it != end; ++it) {
+        if (i >= 8) return ret;
+        if (*it == true) {
+            ret |= (1 << i);
+        }
+        i++;
+    }
+    return ret;
 }
 
 #endif
