@@ -11,7 +11,7 @@
 #include <type_traits>
 
 using Path = std::string;
-using Byte = std::int8_t;
+using Byte = std::uint8_t;
 
 bool read_data(int n, int d, float**& data, const char* file_name);
 
@@ -75,9 +75,9 @@ inline Path DirName(const Path& p) {
 }
 
 template<typename Iter>
-inline char bitsToByte(Iter start, Iter end) {
+inline Byte bitsToByte(Iter start, Iter end) {
     int i = 0;
-    char ret = 0;
+    Byte ret = 0;
     for (Iter it = start; it != end; ++it) {
         if (i >= 8) return ret;
         if (*it == true) {
