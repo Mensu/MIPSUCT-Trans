@@ -15,11 +15,11 @@ class Slot {
     Slot(Byte* slot, size_t byte_size, const Rid::DataType& type): slot(slot), byte_size(byte_size), type(type) {}
 
     bool Get(std::unique_ptr<Record>&);
-    bool Get(std::unique_ptr<BallTreeBranch>&, Rid& left, Rid& right);
+    bool Get(std::unique_ptr<BallTreeBranch>&);
     bool Get(std::unique_ptr<BallTreeLeaf>&);
 
     bool Set(const Record&);
-    bool Set(const BallTreeBranch&, const Rid& left, const Rid& right);
+    bool Set(const BallTreeBranch&);
     bool Set(const BallTreeLeaf&);
 
     int Size() {
