@@ -15,7 +15,7 @@ class MIPSearcher : public BallTreeVisitor {
         : needle(v), needle_norm(Norm(needle)), record_storage_(r_storage),
           node_storage_(n_storage) {}
 
-    virtual void Visit(const ExBallTreeBranch* branch);
+    virtual void Visit(const BallTreeBranch* branch);
 
     virtual void Visit(const BallTreeLeaf* leaf);
 
