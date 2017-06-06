@@ -74,9 +74,7 @@ inline Path DirName(const Path& p) {
     return index == std::string::npos ? "" : p.substr(0, index + 1);
 }
 
-<<<<<<< HEAD:BallTree/include/Utility.h
-#endif  //__UTILITY_H
-=======
+
 template<typename Iter>
 inline Byte bitsToByte(Iter start, Iter end) {
     int i = 0;
@@ -92,4 +90,4 @@ inline Byte bitsToByte(Iter start, Iter end) {
 }
 
 #endif
->>>>>>> d5927f0bd311de2d4427927a15b80f82a330ba85:BallTree/Utility.h
+

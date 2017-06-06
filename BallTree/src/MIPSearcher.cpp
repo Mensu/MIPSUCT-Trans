@@ -1,8 +1,8 @@
 #include "MIPSearcher.h"
 
 void MIPSearcher::Visit(const ExBallTreeBranch* branch) {
-    double left_mip(PossibleMip(node_storage_->Get(branch->left))),
-        right_mip(PossibleMip(node_storage_->Get(branch->right)));
+    double left_mip = PossibleMip(node_storage_->Get(branch->left));
+    double right_mip = PossibleMip(node_storage_->Get(branch->right));
     if (left_mip > right_mip and left_mip > cur_mip_) {
         node_storage_->Get(branch->left)->Accept(*this);
         if (right_mip > cur_mip_) {

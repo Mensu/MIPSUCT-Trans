@@ -7,7 +7,8 @@ struct Rid {
     static constexpr DataType record = 0;
     static constexpr DataType branch = 1;
     static constexpr DataType leaf = 2;
-    Rid(int page_id, int slot_id, DataType type = Rid::record) : page_id(page_id), slot_id(slot_id), type(type) {}
+    Rid(int page_id, int slot_id, DataType type = Rid::record)
+        : page_id(page_id), slot_id(slot_id), type(type) {}
     int page_id, slot_id;
     DataType type;
 };
