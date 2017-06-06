@@ -24,6 +24,8 @@ template <
     int64_t BytesPerPage, int64_t MaxPageInMemory = -1,
     bool OmitZeroInNameOfFirstPage = true>
 class FixedLengthStorage {
+    using Bitset = std::vector<bool>;
+    using Pages = std::unordered_map<int, Page>;
   public:
     FixedLengthStorage(int record_size_) {
         static_assert(
@@ -43,11 +45,31 @@ class FixedLengthStorage {
     int RecordSize() const {
         return record_size_;
     }
+  private:
+  
+    bool pageInMemory(int page_id) {
+        return m_frames.find(page_id) != m_frames.end();
+    }
+    
+    /**
+     * @Description Swaping the page in frame when the frames
+     * @Return the swap-out page_id
+     */
+    int swapPageOut() {
+
+    }
+
+    bool framesFull() {
+
+    }
+
 
   private:
     int record_size_;
     std::unique_ptr<std::string> name_;
     std::unique_ptr<Path> dest_dir;
+    Bitset m_dirty_map;
+    Pages m_frames;
     // vector<Byte*> buffer_pool_; // need better representation
 };
 
