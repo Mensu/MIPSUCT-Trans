@@ -16,7 +16,7 @@ class Page {
 
   public:
     const int page_size;
-    using Pool = std::unique_ptr<Byte>;
+    using Pool = Byte*;
     using IntType = std::size_t;
     using BitMap = std::vector<bool>;
 
@@ -24,12 +24,12 @@ class Page {
     /**
      * @Description Create a new page
      */
-    Page(int page_id, IntType slot_size, Rid::DataType type, IntType page_size_in_k);
+    Page(int page_id, IntType slot_size, Rid::DataType type, Byte* pool_base, IntType page_size_in_k);
 
     /**
      * @Description Make a page from binary page file
      */
-    Page(int page_id, std::ifstream& in, int page_size_in_k);
+    Page(int page_id, std::ifstream& in, Byte* pool_base, int page_size_in_k);
     /**
      * @Description Write data to file;
      */
@@ -68,7 +68,7 @@ class Page {
      * @Description the delegate construction
      * @Param delegate_constructor unused.
      */
-    Page(int page_id, IntType page_size_in_k, bool delegate_constructor);
+    Page(int page_id, IntType page_size_in_k, Byte* pool_base, bool delegate_constructor);
     
     void init();
 
