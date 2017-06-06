@@ -2,7 +2,7 @@
 
 Page::Page(int page_id, IntType slot_size, Rid::DataType type, Byte* pool_base,
            IntType page_size_in_k = 64)
-          : Page(page_id, page_size_in_k, true) {
+          : Page(page_id, page_size_in_k, pool_base, true) {
     m_slot_size = slot_size;
     Byte* solt_size_addr = m_slot_pool + page_size - sizeof(IntType);
     *reinterpret_cast<IntType*>(solt_size_addr) = m_slot_size;
@@ -12,7 +12,7 @@ Page::Page(int page_id, IntType slot_size, Rid::DataType type, Byte* pool_base,
 }
 
 Page::Page(int page_id, std::istream& in, Byte* pool_base, int page_size_in_k = 64)
-          : Page(page_id, page_size_in_k, true) {
+          : Page(page_id, page_size_in_k, pool_base, true) {
     in.read(reinterpret_cast<char*>(m_slot_pool), page_size);
     Byte* solt_size_addr = m_slot_pool + page_size - sizeof(IntType);
     m_slot_size = *reinterpret_cast<IntType*>(solt_size_addr);

@@ -39,19 +39,20 @@ class FixedLengthStorage {
 
     FixedLengthStorage(
         int record_size, const std::string& name, const Path& dest_dir)
-        : record_size(record_size),
+        : // record_size(record_size),
           name(name),
-          dest_dir(dest_dir),
+          // dest_dir(dest_dir),
           page_num(0),
           is_referenced(MaxPageInMemory, false),
           is_dirty(MaxPageInMemory, false),
-          frames(MaxPageInMemory, nullptr) {
+          frames(MaxPageInMemory, nullptr),
+          buffer_ptr(new Byte[buffer_size]()) {
         static_assert(MaxPageInMemory > 0, "MaxPageInMemory should be > 0 when using this constructor");
         auto fs = getFs();
         if (fs.tellg() == 0) {
             fs.write(reinterpret_cast<char *>(&this->page_num), sizeof(this->page_num));
         } else {
-            fs.read(reinterpret_cast<char *>(this->page_num), sizeof(this->page_num));
+            fs.read(reinterpret_cast<char *>(&this->page_num), sizeof(this->page_num));
         }
     }
 
@@ -67,8 +68,9 @@ class FixedLengthStorage {
         // all pages are full
         if (not non_full_page_ptr) {
             // create new page
-            non_full_page_ptr = std::make_shared<Page>(this->page_num, this->record_size, DataType, this->page_size_in_k);
             auto frame_id = this->swapVictimPageOut();
+            non_full_page_ptr = std::make_shared<Page>(this->page_num, this->record_size, DataType, this->getFrameAddr(frame_id), this->page_size_in_k);
+
             this->initNewPage(non_full_page_ptr, frame_id);
             ++this->page_num;
         }
@@ -127,7 +129,7 @@ class FixedLengthStorage {
 
     void swapPageOut(std::size_t frame_id, std::ostream &out) {
         auto page_ptr = this->frames[frame_id];
-        auto page_position = this->base + page_ptr->PageId() * this->record_size;
+        auto page_position = this->begin_pos + page_ptr->PageId() * this->record_size;
         out.seekp(page_position);
         page_ptr->sync(out);
     }
@@ -138,9 +140,9 @@ class FixedLengthStorage {
     }
 
     void swapPageIn(int page_in_id, std::size_t frame_id, std::istream &in) {
-        auto page_position = this->base + page_in_id * this->record_size;
+        auto page_position = this->begin_pos + page_in_id * this->record_size;
         in.seekg(page_position);
-        auto new_page_ptr = std::make_shared<Page>(page_in_id, in, this->page_size_in_k);
+        auto new_page_ptr = std::make_shared<Page>(page_in_id, in, this->getFrameAddr(frame_id), this->page_size_in_k);
         this->initNewPage(new_page_ptr, frame_id);
         this->is_dirty[frame_id] = false;
     }
@@ -179,6 +181,10 @@ class FixedLengthStorage {
         return std::move(fs);
     }
 
+    inline Byte *getFrameAddr(std::size_t frame_id) const {
+        return reinterpret_cast<Byte *>(reinterpret_cast<Byte (*)[page_size]>(this->buffer_ptr.get()) + frame_id);
+    }
+
   private:
     int record_size;
     std::string name;
@@ -189,11 +195,13 @@ class FixedLengthStorage {
     BitSet is_dirty;
     std::vector<PagePtr> frames;
     std::unordered_map<int, std::size_t> page_to_frame_map;
-    // vector<Byte*> buffer_pool_; // need better representation
+    std::unique_ptr<Byte> buffer_ptr;
 
     static constexpr std::ios_base::openmode openmode = std::ios::binary | std::ios::out | std::ios::app;
     static constexpr std::size_t page_size_in_k = (BytesPerPage + 1023) / 1024;
-    static constexpr std::size_t base = sizeof(page_num) + sizeof(Rid);
+    static constexpr std::size_t page_size = page_size_in_k * 1024;
+    static constexpr std::size_t buffer_size = page_size * MaxPageInMemory;
+    static constexpr std::size_t begin_pos = sizeof(page_num) + sizeof(Rid);
     // page_num and Rid of Tree Root
 };
 
@@ -266,10 +274,10 @@ class SimpleStorage : public RecordStorage {
 
 namespace storage_factory {
 
-inline std::unique_ptr<MemoryOnlyStorage> GetMemoryOnlyStorage() {
+inline std::unique_ptr<SimpleStorage> GetMemoryOnlyStorage() {
     return nullptr;
 }
-inline std::unique_ptr<NormalStorage> GetNormalStorage(const Path& dest_dir) {
+inline std::unique_ptr<SimpleStorage> GetNormalStorage(const Path& dest_dir) {
     return nullptr;
 }
 

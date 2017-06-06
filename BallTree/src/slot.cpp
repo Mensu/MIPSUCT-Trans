@@ -37,7 +37,7 @@ bool Slot::Get(std::unique_ptr<BallTreeBranch>& pointer) {
   auto left = *reinterpret_cast<Rid*>(radius_begin + sizeof(double));
   auto right = *reinterpret_cast<Rid*>(radius_begin + sizeof(double) + sizeof(Rid));
   std::vector<float> center(center_begin, center_begin + center_size);
-  pointer = BallTreeBranch::Create(std::move(center), radius, nullptr, nullptr, *left, *right);
+  pointer = BallTreeBranch::Create(std::move(center), radius, nullptr, nullptr, left, right);
   return true;
 }
 
