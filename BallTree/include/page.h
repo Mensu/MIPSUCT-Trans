@@ -73,7 +73,7 @@ class Page {
     void init();
 
     inline Slot makeSlot(int slot_id) {
-        return Slot(m_slot_pool.get() + m_slot_size * slot_id, m_slot_size, type);
+        return Slot(m_slot_pool + m_slot_size * slot_id, m_slot_size, type);
     }
 
  private:
