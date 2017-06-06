@@ -76,6 +76,7 @@ class BallTreeImpl {
 
   private:
     std::unique_ptr<RecordStorage> record_storage_;
+    std::unique_ptr<NodeStorage> node_storage_;
     std::unique_ptr<BallTreeNode> root_;
 };
 

@@ -74,4 +74,4 @@ inline Path DirName(const Path& p) {
     return index == std::string::npos ? "" : p.substr(0, index + 1);
 }
 
-#endif
+#endif  //__UTILITY_H

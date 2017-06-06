@@ -137,7 +137,7 @@ std::pair<int, double> BallTreeImpl::Search(const std::vector<float>& v) {
         assert(false && "root is nullptr!");
         return {-1, 0};
     }
-    MIPSearcher visitor(v, record_storage_.get());
+    MIPSearcher visitor(v, record_storage_.get(), node_storage_.get());
     root_->Accept(visitor);
     return {visitor.ResultIndex(), visitor.ResultMIP()};
 }

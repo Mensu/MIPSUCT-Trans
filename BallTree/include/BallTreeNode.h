@@ -40,8 +40,9 @@ struct BallTreeBranch : BallTreeNode {
           left(std::move(left)),
           right(std::move(right)) {}
 
+    // don't use
     virtual void Accept(BallTreeVisitor& v) const override {
-        v.Visit(this);
+        return;
     }
 
     std::unique_ptr<BallTreeNode> left, right;
@@ -65,6 +66,23 @@ struct BallTreeLeaf : BallTreeNode {
     }
 
     std::vector<Rid> data;
+};
+
+
+struct ExBallTreeBranch : BallTreeNode {
+
+    ExBallTreeBranch(
+        std::vector<float>&& center, double radius, Rid&& left,
+        Rid&& right)
+        : BallTreeNode(std::move(center), radius),
+          left(std::move(left)),
+          right(std::move(right)) {}
+
+    virtual void Accept(BallTreeVisitor& v) const override {
+        v.Visit(this);
+    }
+
+    Rid left, right;
 };
 
 #endif  // __BALL_TREE_NODE

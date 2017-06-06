@@ -10,6 +10,8 @@
 #include "record.h"
 #include "rid.h"
 
+struct BallTreeNode;
+
 /**
  * low level abstraction of the 'storage' concept
  *
@@ -73,6 +75,15 @@ class RecordStorage {
     virtual void DumpTo(const Path& dest_dir) = 0;
 
     virtual ~RecordStorage() {}
+};
+/**
+ * storage store node
+ */
+class NodeStorage {
+  public:
+    BallTreeNode* Get(Rid rid) {
+      return nullptr;
+    }
 };
 
 /**
