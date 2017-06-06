@@ -90,4 +90,3 @@ inline Byte bitsToByte(Iter start, Iter end) {
 }
 
 #endif
-
