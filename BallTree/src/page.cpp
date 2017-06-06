@@ -106,5 +106,5 @@ void Page::init() {
     const int bit_per_slot = m_slot_size * 8 + 1;
     m_total_slot = page_bit / bit_per_slot;
     m_bitmap_size = m_total_slot / 8 + 1;
-    bitmap_pos = m_slot_pool + page_size - m_bitmap_size - sizeof(IntType);
+    bitmap_pos = m_slot_pool + m_slot_size * m_slot_num;
 }
