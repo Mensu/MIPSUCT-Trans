@@ -3,12 +3,12 @@
 /**
  * visitor pattern for multiple dispatch
  */
-struct ExBallTreeBranch;
+struct BallTreeBranch;
 struct BallTreeLeaf;
 
 class BallTreeVisitor {
   public:
-    virtual void Visit(const ExBallTreeBranch*) = 0;
+    virtual void Visit(const BallTreeBranch*) = 0;
     virtual void Visit(const BallTreeLeaf*) = 0;
 };
 

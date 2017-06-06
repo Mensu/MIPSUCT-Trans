@@ -2,24 +2,30 @@
 
 using Records = std::vector<Record::Pointer>;
 
-std::vector<Rid> BallTreeImpl::StoreAll(const Records& records) {
-    std::vector<Rid> ret;
-    ret.reserve(records.size());
-    std::transform(
-        begin(records), end(records), std::back_inserter(ret),
-        [this](const Record::Pointer& record) {
-            return record_storage_->Put(*record);
-        });
-    return ret;
+/**
+ * build the balltree from index file
+ */
+BallTreeImpl::BallTreeImpl(const Path& index_path) {
+    
 }
 
-BallTreeLeaf::Pointer BallTreeImpl::BuildTreeLeaf(const Records& records) {
-    std::vector<Rid> rids(StoreAll(records));
-    std::vector<float> center(CalculateCenter(records));
-    double radius(CalculateRadius(records, center));
-    return BallTreeLeaf::Create(std::move(center), radius, std::move(rids));
+/**
+ * build the balltree from plain index and vector data
+ */
+BallTreeImpl::BallTreeImpl(Records&& records)
+    :
+#ifdef BALLTREE_TESTING_ALGORITHM
+      record_storage_(storage_factory::GetSimpleStorage())
+#else
+      record_storage_(storage_factory::GetMemoryOnlyStorage())
+#endif
+      ,
+      root_(BuildTree(std::move(records))) {
 }
 
+/**
+ * functions for calculations
+ */
 std::vector<float> BallTreeImpl::CalculateCenter(const Records& records) {
     assert(records.size() > 0);
     std::vector<float> center(records.front()->Size(), 0);
@@ -84,6 +90,18 @@ std::pair<Records, Records> BallTreeImpl::SplitRecord(Records&& records) {
     return SplitRecord(std::move(records), a, b);
 }
 
+/**
+ *  Functions for building Ball Tree Node 
+ */
+
+BallTreeLeaf::Pointer BallTreeImpl::BuildTreeLeaf(const Records& records) {
+    std::vector<Rid> rids(StoreAll(records));
+    std::vector<float> center(CalculateCenter(records));
+    double radius(CalculateRadius(records, center));
+    return BallTreeLeaf::Create(std::move(center), radius, std::move(rids));
+}
+
+
 BallTreeBranch::Pointer BallTreeImpl::BuildTreeBranch(Records&& data) {
     std::vector<float> center(CalculateCenter(data));
     double radius(CalculateRadius(data, center));
@@ -100,26 +118,18 @@ BallTreeNode::Pointer BallTreeImpl::BuildTree(Records&& records) {
     return BuildTreeBranch(std::move(records));
 }
 
-/**
- * build the balltree from index file
- */
-BallTreeImpl::BallTreeImpl(const Path& index_path) {
-    
+std::vector<Rid> BallTreeImpl::StoreAll(const Records& records) {
+    std::vector<Rid> ret;
+    ret.reserve(records.size());
+    std::transform(
+        begin(records), end(records), std::back_inserter(ret),
+        [this](const Record::Pointer& record) {
+            return record_storage_->Put(*record);
+        });
+    return ret;
 }
 
-/**
- * build the balltree from plain index and vector data
- */
-BallTreeImpl::BallTreeImpl(Records&& records)
-    :
-#ifdef BALLTREE_TESTING_ALGORITHM
-      record_storage_(storage_factory::GetSimpleStorage())
-#else
-      record_storage_(storage_factory::GetMemoryOnlyStorage())
-#endif
-      ,
-      root_(BuildTree(std::move(records))) {
-}
+
 
 /**
  * store the balltree to an index file

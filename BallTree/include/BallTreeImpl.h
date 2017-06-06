@@ -30,6 +30,9 @@ class BallTreeImpl {
      */
     BallTreeImpl(Records&& records);
 
+    /**
+     * functions for calculations
+     */
     static std::vector<float> CalculateCenter(const Records& records);
 
     static double CalculateRadius(
@@ -43,6 +46,10 @@ class BallTreeImpl {
         Records&& records, Record* a, Record* b);
 
     static std::pair<Records, Records> SplitRecord(Records&& records);
+
+    /**
+     *  Functions for building Ball Tree Node 
+     */
 
     std::vector<Rid> StoreAll(const Records& records);
 
