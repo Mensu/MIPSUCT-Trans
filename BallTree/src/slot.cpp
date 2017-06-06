@@ -143,7 +143,7 @@ bool Slot::Set(const BallTreeLeaf& leaf) {
       reinterpret_cast<Rid*>(radius + sizeof(double) + sizeof(size_t));
 
   std::transform(leaf.center.begin(), leaf.center.end(), center_begin,
-                 [](const auto& data) { return data });
+                 [](const auto& data) { return data; });
   std::transform(leaf.data.begin(), leaf.data.end(), rid_begin,
                  [](const auto& data) { return data; });
   *reinterpret_cast<double*>(radius) = leaf.radius;

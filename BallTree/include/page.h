@@ -29,11 +29,11 @@ class Page {
     /**
      * @Description Make a page from binary page file
      */
-    Page(int page_id, std::ifstream& in, int page_size_in_k);
+    Page(int page_id, std::istream& in, int page_size_in_k);
     /**
      * @Description Write data to file;
      */
-    void sync(std::ofstream& out);
+    void sync(std::ostream& out);
 
     /**
      * @Description Select a slot according to solt id.
@@ -53,6 +53,10 @@ class Page {
 
     inline bool isFull() { return m_slot_num >= m_total_slot; }
 
+    inline int PageId() const {
+      return this->m_page_id;
+    }
+
   private:
    /**
     * @Description Build Bitmap from buffer memory.
@@ -69,7 +73,7 @@ class Page {
      * @Param delegate_constructor unused.
      */
     Page(int page_id, IntType page_size_in_k, bool delegate_constructor);
-    
+
     void init();
 
     inline Slot makeSlot(int slot_id) {

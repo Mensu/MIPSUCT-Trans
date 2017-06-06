@@ -3,7 +3,7 @@
 
 #include "record.h"
 #include "Utility.h"
-#include "balltree-node.h"
+#include "BallTreeNode.h"
 
 
 // added on June 3, 2017

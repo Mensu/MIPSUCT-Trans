@@ -13,7 +13,7 @@ Page::Page(int page_id, IntType slot_size, Rid::DataType type,
     m_slot_map = std::vector<bool>(m_bitmap_size * 8, false);
 }
 
-Page::Page(int page_id, std::ifstream& in, int page_size_in_k = 64)
+Page::Page(int page_id, std::istream& in, int page_size_in_k = 64)
           : Page(page_id, page_size_in_k, true) {
     Byte* pool_addr = m_slot_pool.get();
     in.read(reinterpret_cast<char*>(pool_addr), page_size);
@@ -34,7 +34,7 @@ Page::Page(int page_id, IntType page_size_in_k, bool delegate_constructor)
 /**
  * @Description Write data to file;
  */
-void Page::sync(std::ofstream& out) {
+void Page::sync(std::ostream& out) {
     out.write(reinterpret_cast<char*>(m_slot_pool.get()), page_size);
 }
 
@@ -61,6 +61,7 @@ std::tuple<Rid, Slot> Page::insert() {
             break;
         }
     }
+    this->m_dirty = true;
     return std::make_tuple(ret, makeSlot(ret.slot_id));
 }
 
