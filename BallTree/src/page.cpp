@@ -2,7 +2,7 @@
 
 Page::Page(int page_id, IntType slot_size, Rid::DataType type, Byte* pool_base,
            IntType page_size_in_k = 64)
-          : Page(page_id, page_size_in_k, true) {
+          : Page(page_id, page_size_in_k, pool_base, true) {
     m_slot_size = slot_size;
     Byte* solt_size_addr = m_slot_pool + page_size - sizeof(IntType);
     *reinterpret_cast<IntType*>(solt_size_addr) = m_slot_size;
@@ -11,8 +11,8 @@ Page::Page(int page_id, IntType slot_size, Rid::DataType type, Byte* pool_base,
     m_slot_map = std::vector<bool>(m_bitmap_size * 8, false);
 }
 
-Page::Page(int page_id, std::ifstream& in, Byte* pool_base, int page_size_in_k = 64)
-          : Page(page_id, page_size_in_k, true) {
+Page::Page(int page_id, std::istream& in, Byte* pool_base, int page_size_in_k = 64)
+          : Page(page_id, page_size_in_k, pool_base, true) {
     in.read(reinterpret_cast<char*>(m_slot_pool), page_size);
     Byte* solt_size_addr = m_slot_pool + page_size - sizeof(IntType);
     m_slot_size = *reinterpret_cast<IntType*>(solt_size_addr);
@@ -31,7 +31,7 @@ Page::Page(int page_id, IntType page_size_in_k, Byte* pool_base, bool delegate_c
 /**
  * @Description Write data to file;
  */
-void Page::sync(std::ofstream& out) {
+void Page::sync(std::ostream& out) {
     out.write(reinterpret_cast<char*>(m_slot_pool), page_size);
 }
 
@@ -58,6 +58,7 @@ std::tuple<Rid, Slot> Page::insert() {
             break;
         }
     }
+    this->m_dirty = true;
     return std::make_tuple(ret, makeSlot(ret.slot_id));
 }
 
