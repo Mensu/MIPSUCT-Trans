@@ -27,18 +27,17 @@ bool Slot::Get(std::unique_ptr<Record>& pointer) {
  * | center_size |    vector center    | radius | left | right |
  * +-------------+---------------------+--------+------+-------+
  */
-bool Slot::Get(std::unique_ptr<BallTreeBranch>& pointer, Rid& left,
-               Rid& right) {
+bool Slot::Get(std::unique_ptr<BallTreeBranch>& pointer) {
   if (type != Rid::branch) return false;
   const size_t& center_size = *reinterpret_cast<size_t*>(slot);
   float* center_begin = reinterpret_cast<float*>(slot + sizeof(double));
   Byte* radius_begin = reinterpret_cast<Byte*>(center_begin + center_size);
 
   const double& radius = *reinterpret_cast<double*>(radius_begin);
-  left = *reinterpret_cast<Rid*>(radius_begin + sizeof(double));
-  right = *reinterpret_cast<Rid*>(radius_begin + sizeof(double) + sizeof(Rid));
+  auto left = *reinterpret_cast<Rid*>(radius_begin + sizeof(double));
+  auto right = *reinterpret_cast<Rid*>(radius_begin + sizeof(double) + sizeof(Rid));
   std::vector<float> center(center_begin, center_begin + center_size);
-  pointer = BallTreeBranch::Create(std::move(center), radius, nullptr, nullptr);
+  pointer = BallTreeBranch::Create(std::move(center), radius, nullptr, nullptr, *left, *right);
   return true;
 }
 
@@ -98,8 +97,7 @@ bool Slot::Set(const Record& record) {
  * | center_size |    vector center    | radius | left | right |
  * +-------------+---------------------+--------+------+-------+
  */
-bool Slot::Set(const BallTreeBranch& branch, const Rid& left,
-               const Rid& right) {
+bool Slot::Set(const BallTreeBranch& branch) {
   if (type != Rid::branch) return false;
   assert(sizeof(size_t) + sizeof(float) * branch.center.size() +
              sizeof(Rid) * 2 + sizeof(double) <=
@@ -115,8 +113,8 @@ bool Slot::Set(const BallTreeBranch& branch, const Rid& left,
   Rid* right_addr = left_addr + 1;
 
   *radius = branch.radius;
-  *left_addr = left;
-  *right_addr = right;
+  *left_addr = branch.r_left;
+  *right_addr = branch.r_right;
 
   return true;
 }

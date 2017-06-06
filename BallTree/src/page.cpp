@@ -1,41 +1,38 @@
 #include "page.h"
 
-Page::Page(int page_id, IntType slot_size, Rid::DataType type,
+Page::Page(int page_id, IntType slot_size, Rid::DataType type, Byte* pool_base,
            IntType page_size_in_k = 64)
           : Page(page_id, page_size_in_k, true) {
     m_slot_size = slot_size;
-    Byte* pool_addr = m_slot_pool.get();
-
-    Byte* solt_size_addr = pool_addr + page_size - sizeof(IntType);
+    Byte* solt_size_addr = m_slot_pool + page_size - sizeof(IntType);
     *reinterpret_cast<IntType*>(solt_size_addr) = m_slot_size;
     *reinterpret_cast<Rid::DataType*>(solt_size_addr - sizeof(Rid::DataType)) = type;
     init();
     m_slot_map = std::vector<bool>(m_bitmap_size * 8, false);
 }
 
-Page::Page(int page_id, std::istream& in, int page_size_in_k = 64)
+Page::Page(int page_id, std::istream& in, Byte* pool_base, int page_size_in_k = 64)
           : Page(page_id, page_size_in_k, true) {
-    Byte* pool_addr = m_slot_pool.get();
-    in.read(reinterpret_cast<char*>(pool_addr), page_size);
-    Byte* solt_size_addr = pool_addr + page_size - sizeof(IntType);
+    in.read(reinterpret_cast<char*>(m_slot_pool), page_size);
+    Byte* solt_size_addr = m_slot_pool + page_size - sizeof(IntType);
     m_slot_size = *reinterpret_cast<IntType*>(solt_size_addr);
     type = *reinterpret_cast<Rid::DataType*>(solt_size_addr - sizeof(Rid::DataType));
     init();
     initBitMap();
 }
 
-Page::Page(int page_id, IntType page_size_in_k, bool delegate_constructor)
+Page::Page(int page_id, IntType page_size_in_k, Byte* pool_base, bool delegate_constructor)
           : m_page_id(page_id),
             m_slot_num(0),
             m_dirty(false),
             m_slot_size(0),
             page_size(page_size_in_k * 1024 / sizeof(Byte)),
-            m_slot_pool(new Byte[page_size]{0}) {}
+            m_slot_pool(pool_base) {}
 /**
  * @Description Write data to file;
  */
 void Page::sync(std::ostream& out) {
-    out.write(reinterpret_cast<char*>(m_slot_pool.get()), page_size);
+    out.write(reinterpret_cast<char*>(m_slot_pool), page_size);
 }
 
 /**
@@ -92,7 +89,7 @@ void Page::initBitMap() {
 
 void Page::restoreBitMap() {
     if (not m_dirty) return;
-    Byte* end_pos = m_slot_pool.get() + page_size - sizeof(IntType);
+    Byte* end_pos = m_slot_pool + page_size - sizeof(IntType);
     auto it = m_slot_map.begin();
     for (Byte* pos = bitmap_pos; pos != end_pos; ++pos) {
         *pos = bitsToByte(it, it + 8);
@@ -110,5 +107,5 @@ void Page::init() {
     const int bit_per_slot = m_slot_size * 8 + 1;
     m_total_slot = page_bit / bit_per_slot;
     m_bitmap_size = m_total_slot / 8 + 1;
-    bitmap_pos = m_slot_pool.get() + page_size - m_bitmap_size - sizeof(IntType);
+    bitmap_pos = m_slot_pool + m_slot_size * m_slot_num;
 }
