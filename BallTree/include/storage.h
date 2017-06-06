@@ -70,11 +70,8 @@ class FixedLengthStorage {
     std::unique_ptr<Path> dest_dir;
     Bitset m_dirty_map;
     Pages m_frames;
-    // vector<Byte*> buffer_pool_; // need better representation
 };
 
-class MemoryOnlyStorage;
-class NormalStorage;
 
 class RecordStorage {
   public:
@@ -108,30 +105,6 @@ class NodeStorage {
     }
 };
 
-/**
- * uses only memory to store data
- */
-class MemoryOnlyStorage : public RecordStorage {
-  public:
-    virtual Rid Put(const Record& record) override;
-    virtual std::unique_ptr<Record> Get(const Rid& rid) override;
-    virtual void DumpTo(const Path& dest_dir) override;
-};
-
-/**
- * uses both memory and file to store record
- */
-class NormalStorage : public RecordStorage {
-  public:
-    NormalStorage(const Path& dest_dir);
-
-    virtual Rid Put(const Record& record) override;
-    virtual std::unique_ptr<Record> Get(const Rid& rid) override;
-    virtual void DumpTo(const Path& dest_dir) override;
-
-  private:
-    Path& dest_dir_;
-};
 
 /**
  * simple storage for algorithm testing
