@@ -66,7 +66,7 @@ template <typename F>
 void TimeAndPrint(const F &f, const std::string &prologue = "") {
     std::cout << prologue;
     auto time = Time(f);
-    std::printf("DONE. It took %lld seconds\n", time.count());
+    std::printf("DONE.\n It took %lld seconds\n\n", time.count());
 }
 
 template <
@@ -154,12 +154,14 @@ template <
     template <const char *, int, int> class DataSet, const char *Name,
     int Scale, int Dimension>
 void TestDataSet(DataSet<Name, Scale, Dimension> tag) {
+    std::printf("Testing %s dataset, with Scale = %d, Dimension = %d\n\n",Name, Scale, Dimension );
     BallTree tree;
     float** data = TestBuildTree(tag, tree);
     TestStoreTree(tag, tree);
     BallTree tree2;
     TestRestoreTree(tag, tree);
     TestSearchTree(tag, tree, data);
+    std::printf("\n");
 }
 
 template <typename... DataSets>
