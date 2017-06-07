@@ -172,5 +172,9 @@ void TestDataSets() {
 } // anonymous namespace
 
 int main() {
+<<<<<<< HEAD
     TestDataSets<Yahoo>();
+=======
+    TestDataSets<Mnist>();
+>>>>>>> 21c1a5c70991cc9afb6531d56bfb2d723ff25d19
 }

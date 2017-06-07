@@ -140,29 +140,8 @@ bool BallTreeImpl::StoreTree(Path& index_path) {
         node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
     }
 
-    // postoder
-    std::stack<BallTreeNode*> in_stack, out_stack;
-    in_stack.push(root_.get());
-
-    while (!in_stack.empty()) {
-        BallTreeNode* cur = in_stack.top();
-        in_stack.pop();
-        NodeBuilder visitor;
-        cur->Accept(visitor);
-        auto result = visitor.Get();
-        for (auto i = result.begin(); i != result.end(); ++i) {
-            in_stack.push(*i);
-        }
-
-        out_stack.push(cur);
-    }
-
-    while (!out_stack.empty()) {
-        BallTreeNode* cur = out_stack.top();
-        out_stack.pop();
-        NodeStorer visitor(node_storage_.get(), record_storage_.get());
-        cur->Accept(visitor);
-    }
+    NodeStorer visitor(node_storage_.get(), record_storage_.get());
+    root_->Accept(visitor);
 
     node_storage_->PutRoot(*root_.get());
 
