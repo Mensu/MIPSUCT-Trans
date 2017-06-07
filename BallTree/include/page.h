@@ -7,6 +7,7 @@
 #include "rid.h"
 #include "slot.h"
 #include "Utility.h"
+#include "BallTreeImpl.h"
 
 /**
  * page entity in memory form. Extract the data in page with type T.
@@ -50,6 +51,8 @@ class Page {
      * @Description Drop a slot from page, just reset its bit in bitmap
      */
     bool drop(const int& slot_id);
+
+    static size_t GetSize(Rid::DataType type, int dimension);
 
     inline bool isFull() { return m_slot_num >= m_total_slot; }
 

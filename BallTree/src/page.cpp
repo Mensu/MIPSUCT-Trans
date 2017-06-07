@@ -109,5 +109,24 @@ void Page::init() {
     const int bit_per_slot = m_slot_size * 8 + 1;
     m_total_slot = page_bit / bit_per_slot;
     m_bitmap_size = m_total_slot / 8 + 1;
-    bitmap_pos = m_slot_pool + m_slot_size * m_slot_num;
+    bitmap_pos = m_slot_pool + m_slot_size * m_total_slot;
+}
+
+size_t Page::GetSize(Rid::DataType type, int dimension) {
+    size_t node_size = sizeof(double) + sizeof(float) * dimension + sizeof(size_t);
+    size_t ret = 0;
+    switch (type) {
+    case Rid::branch:
+        ret = node_size + sizeof(Rid) * 2 + sizeof(size_t);
+        break;
+    case Rid::leaf:
+        ret = node_size + sizeof(Rid) * dimension;
+        break;
+    case Rid::record:
+        ret = sizeof(Rid) * N0 + sizeof(size_t);
+        break;
+    default:
+        ret = 0;
+    }
+    return ret;
 }
