@@ -8,11 +8,14 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <stack>
+#include <queue>
 #include "Utility.h"
 #include "BallTreeNode.h"
 #include "record.h"
 #include "storage.h"
 #include "MIPSearcher.h"
+#include "NodeBuilder.h"
 
 constexpr int N0 = 20;
 
@@ -80,6 +83,7 @@ class BallTreeImpl {
      * delete given vector from the balltree (not written now)
      */
     bool Delete(const std::vector<float>& v);
+
 
   private:
     std::unique_ptr<RecordStorage> record_storage_;
