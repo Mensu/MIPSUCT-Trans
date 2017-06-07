@@ -50,7 +50,7 @@ std::string QueryPath(const char *dataset) {
 std::string DataPath(const char *dataset) {
     return dataset + "/src/dataset.txt"s;
 }
-std::string IndexPath(const char *dataset) { return dataset + "/index/index"s; }
+std::string IndexPath(const char *dataset) { return dataset + "/index/"s; }
 
 template <
     typename Duration = std::chrono::seconds, typename Func, typename... Args>
