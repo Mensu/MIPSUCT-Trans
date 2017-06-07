@@ -30,21 +30,4 @@ class NodeStorer : public BallTreeVisitor {
     RecordStorage* record_storage_;
 };
 
-class NodeBuilder : public BallTreeVisitor {
-  public:
-    NodeBuilder() = default;
-
-    virtual void Visit(BallTreeBranch* branch);
-
-    virtual void Visit(BallTreeLeaf* leaf);
-
-    std::vector<BallTreeNode*> Get() {
-    	return v;
-    }
-
-
-  private:
-    std::vector<BallTreeNode*> v;
-};
-
 #endif

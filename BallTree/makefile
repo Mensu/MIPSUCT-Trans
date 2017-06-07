@@ -33,4 +33,5 @@ clean:
 	@rm -rf $(BIN_DIR)
 	@rm -rf main
 	@rm -rf test_main
-	@rm -rf index
+	@rm -rf Mnist/index/*
+	@rm -rf Netflix/index/*
