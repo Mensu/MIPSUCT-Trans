@@ -4,4 +4,4 @@
 Yahoo/
 Mnist/
 a.out
-
+*.o
