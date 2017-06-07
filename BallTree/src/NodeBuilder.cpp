@@ -11,8 +11,20 @@ void NodeStorer::Visit(const BallTreeBranch* branch) {
 }
 
 void NodeStorer::Visit(const BallTreeLeaf* leaf) {
+	std::vector<Rid> rids(StoreAll(records));
 	Rid r = node_storage_->Put(leaf);
 	leaf->rid = r;
+}
+
+std::vector<Rid> NodeStorer::StoreAll(const Records& records) {
+    std::vector<Rid> ret;
+    ret.reserve(records.size());
+    std::transform(
+        begin(records), end(records), std::back_inserter(ret),
+        [this](const Record::Pointer& record) {
+            return record_storage_->Put(*record);
+        });
+    return ret;
 }
 
 
@@ -29,5 +41,4 @@ void NodeBuilder::Visit(const BallTreeBranch* branch) {
 void NodeBuilder::Visit(const BallTreeLeaf* leaf) {
 	return;
 }
-
 

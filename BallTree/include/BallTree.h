@@ -41,6 +41,7 @@ class BallTree {
 
   private:
     std::unique_ptr<BallTreeImpl> impl_;
+    int dim;
 };
 
 #endif

@@ -284,12 +284,14 @@ class SimpleStorage : public RecordStorage {
 
 namespace storage_factory {
 
-inline std::unique_ptr<SimpleStorage> GetMemoryOnlyStorage() {
-    return nullptr;
+inline std::unique_ptr<RecordStorage> GetRecordStorage(Path& dest_dir, int dim) {
+    return std::make_unique<RecordStorage>(dest_dir, dim);
 }
-inline std::unique_ptr<SimpleStorage> GetNormalStorage(const Path& dest_dir) {
-    return nullptr;
+
+inline std::unique_ptr<NodeStorage> GetNodeStorage(Path& dest_dir, int dim) {
+    return std::make_unique<NodeStorage>(dest_dir, dim);
 }
+
 
 inline std::unique_ptr<SimpleStorage> GetSimpleStorage() {
     return std::make_unique<SimpleStorage>();

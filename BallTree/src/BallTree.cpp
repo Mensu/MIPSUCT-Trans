@@ -15,6 +15,7 @@ Records BallTree::ArrayToVector(int n, int d, float** data) {
 }
 
 bool BallTree::buildTree(int n, int d, float** data) {
+    dim = d;
     impl_ = std::make_unique<BallTreeImpl>(ArrayToVector(n, d, data));
     return true;
 }

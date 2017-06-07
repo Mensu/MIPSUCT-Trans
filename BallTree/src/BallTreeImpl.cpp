@@ -15,11 +15,8 @@ BallTreeImpl::BallTreeImpl(const Path& index_path) {
 BallTreeImpl::BallTreeImpl(Records&& records)
     :
 #ifdef BALLTREE_TESTING_ALGORITHM
-      record_storage_(storage_factory::GetSimpleStorage())
-#else
-      record_storage_(storage_factory::GetMemoryOnlyStorage())
+      record_storage_(storage_factory::GetSimpleStorage()),
 #endif
-      ,
       root_(BuildTree(std::move(records))) {
 }
 
@@ -95,10 +92,10 @@ std::pair<Records, Records> BallTreeImpl::SplitRecord(Records&& records) {
  */
 
 BallTreeLeaf::Pointer BallTreeImpl::BuildTreeLeaf(const Records& records) {
-    std::vector<Rid> rids(StoreAll(records));
+    // std::vector<Rid> rids(StoreAll(records));
     std::vector<float> center(CalculateCenter(records));
     double radius(CalculateRadius(records, center));
-    return BallTreeLeaf::Create(std::move(center), radius, std::move(rids));
+    return BallTreeLeaf::Create(std::move(center), radius, std::move(records));
 }
 
 
@@ -135,7 +132,8 @@ std::vector<Rid> BallTreeImpl::StoreAll(const Records& records) {
  * store the balltree to an index file
  */
 bool BallTreeImpl::StoreTree(const Path& index_path) {
-    node_storage_->set(index_path);
+    record_storage_ = storage_factory::GetRecordStorage(index_path, dim);
+    node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
 
     // postoder
     std::stack<BallTreeNode*> in_stack, out_stack;
@@ -157,11 +155,10 @@ bool BallTreeImpl::StoreTree(const Path& index_path) {
     while (!out_stack.empty()) {
         BallTreeNode* cur = out_stack.top();
         out_stack.pop();
-        NodeStorer visitor(node_storage_.get());
+        NodeStorer visitor(node_storage_.get(), record_storage_.get());
         cur->Accept(visitor);
     }
-    root_->left.reset();
-    root_->right.reset();
+    root_.reset();
     return true;
 }
 
