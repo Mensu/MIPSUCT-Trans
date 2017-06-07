@@ -8,7 +8,7 @@ INCLUDE := -I./$(INC_DIR)
 main: $(BUILD_DIR)/test.o $(BUILD_DIR)/BallTree.o \
 	$(BUILD_DIR)/BallTreeImpl.o $(BUILD_DIR)/MIPSearcher.o \
 	$(BUILD_DIR)/Utility.o $(BUILD_DIR)/page.o \
-	$(BUILD_DIR)/slot.o
+	$(BUILD_DIR)/slot.o $(BUILD_DIR)/NodeBuilder.o
 	$(CC) $(FLAGS) $(INCLUDE) $^ -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -18,4 +18,4 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
 clean:  
 	@rm -rf $(BUILD_DIR)
 	@rm -rf $(BIN_DIR)
-	@rm main
+	@rm -rf main
