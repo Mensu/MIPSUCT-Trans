@@ -15,12 +15,13 @@ struct BallTreeNode {
 
     std::vector<float> center;
     double radius;
+    Rid rid;
 
     virtual ~BallTreeNode() {}
 
   protected:
-    BallTreeNode(std::vector<float>&& center, double radius)
-        : center(std::move(center)), radius(radius) {}
+    BallTreeNode(std::vector<float>&& center, double radius, Rid r)
+        : center(std::move(center)), radius(radius), rid(std::move(r)) {}
 };
 
 struct BallTreeBranch : BallTreeNode {
@@ -47,11 +48,10 @@ struct BallTreeBranch : BallTreeNode {
     BallTreeBranch(
         std::vector<float>&& center, double radius, BallTreeNode::Pointer left,
         BallTreeNode::Pointer right, Rid l, Rid r, Rid id)
-        : BallTreeNode(std::move(center), radius),
+        : BallTreeNode(std::move(center), radius, std::move(id)),
           left(std::move(left)),
           right(std::move(right)),
-          r_left(std::move(l)), r_right(std::move(r)),
-          rid(std::move(id)) {}
+          r_left(std::move(l)), r_right(std::move(r)) {}
 
     // don't use
     virtual void Accept(BallTreeVisitor& v) const override {
@@ -60,7 +60,6 @@ struct BallTreeBranch : BallTreeNode {
 
     std::unique_ptr<BallTreeNode> left, right;
     Rid r_left, r_right;
-    Rid rid;
 };
 
 struct BallTreeLeaf : BallTreeNode {
@@ -76,15 +75,14 @@ struct BallTreeLeaf : BallTreeNode {
     BallTreeLeaf(
         std::vector<float>&& center, double radius, std::vector<Rid>&& data,
         Rid&& r)
-        : BallTreeNode(std::move(center), radius), data(std::move(data)),
-        rid(std::move(r)) {}
+        : BallTreeNode(std::move(center), radius, std::move(r)),
+        data(std::move(data)) {}
 
     virtual void Accept(BallTreeVisitor& v) const override {
         v.Visit(this);
     }
 
     std::vector<Rid> data;
-    Rid rid;
 };
 
 
