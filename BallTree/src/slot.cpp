@@ -157,10 +157,10 @@ size_t Slot::GetSize(Rid::DataType type, int dimension) {
         ret = node_size + sizeof(Rid) * 2 + sizeof(size_t);
         break;
     case Rid::leaf:
-        ret = node_size + sizeof(Rid) * dimension;
+        ret = node_size + sizeof(Rid) * N0;
         break;
     case Rid::record:
-        ret = sizeof(Rid) * N0 + sizeof(size_t);
+        ret = sizeof(float) * dimension + sizeof(size_t);
         break;
     default:
         ret = 0;
