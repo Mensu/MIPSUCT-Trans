@@ -10,6 +10,7 @@
 #include <string>
 #include <type_traits>
 
+constexpr int N0 = 20;
 using Path = std::string;
 using Byte = std::uint8_t;
 
@@ -74,4 +75,18 @@ inline Path DirName(const Path& p) {
     return index == std::string::npos ? "" : p.substr(0, index + 1);
 }
 
-#endif
+template<typename Iter>
+inline Byte bitsToByte(Iter start, Iter end) {
+    int i = 0;
+    Byte ret = 0;
+    for (Iter it = start; it != end; ++it) {
+        if (i >= 8) return ret;
+        if (*it == true) {
+            ret |= (1 << i);
+        }
+        i++;
+    }
+    return ret;
+}
+
+#endif  //__UTILITY_H

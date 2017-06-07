@@ -24,7 +24,6 @@ struct Record {
         return data.size();
     }
 
-
     int index;
     std::vector<float> data;
 };

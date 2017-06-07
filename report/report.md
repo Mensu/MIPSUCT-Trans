@@ -30,5 +30,5 @@
 
 #### 对存储模块接口
 
-我们在设计时，将上层算法，和底层的存储部分完全分离开。算法部分仅通过`RecordStorage`这个接口与存储进行交互，分别是`Rid RecordStorage::Put(const Record&)`和`std::unique_ptr<Record> RecordStorage::Get(const Rid&)`。对于数据的这样在进行测试的时候，可以选择不同的RecordStorage的接口来对算法进行测试（`SimpleStorage`是用于测试的实现），这样可以在完全不依赖下层存储实现的情况下确认算法部分的正确性。（测试代码在`test-algorithm.cpp`中给出，依赖是gtest）
+我们在设计时，将上层算法，和底层的存储部分完全分离开。算法部分仅通过`RecordStorage`这个接口与存储进行交互，分别是`Rid RecordStorage::Put(const Record&)`和`std::unique_ptr<Record> RecordStorage::Get(const Rid&)`。对于数据的这样在进行测试的时候，可以选择不同的RecordStorage的接口来对算法进行测试（`SimpleStorage`是用于测试的实现），这样可以在完全不依赖下层存储实现的情况下确认算法部分的正确性。（测试代码在`test-algorithm.cpp`中给出，依赖是gtest,开发第一阶段时测试使用）
 
