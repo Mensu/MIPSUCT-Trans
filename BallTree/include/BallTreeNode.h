@@ -4,14 +4,14 @@
 #include <memory>
 #include <vector>
 #include "rid.h"
-
+#include "record.h"
 #include "BallTreeVisitor.h"
 
 
 struct BallTreeNode {
     using Pointer = std::unique_ptr<BallTreeNode>;
 
-    virtual void Accept(BallTreeVisitor& v) const = 0;
+    virtual void Accept(BallTreeVisitor& v) = 0;
 
     std::vector<float> center;
     double radius;
@@ -53,7 +53,7 @@ struct BallTreeBranch : BallTreeNode {
           right(std::move(right)),
           r_left(std::move(l)), r_right(std::move(r)) {}
 
-    virtual void Accept(BallTreeVisitor& v) const override {
+    virtual void Accept(BallTreeVisitor& v) override {
         v.Visit(this);
     }
 
@@ -63,25 +63,38 @@ struct BallTreeBranch : BallTreeNode {
 
 struct BallTreeLeaf : BallTreeNode {
     using Pointer = std::unique_ptr<BallTreeLeaf>;
+    using Records = std::vector<Record::Pointer>;
 
     static Pointer Create(
-        std::vector<float>&& center, double radius, std::vector<Rid>&& data) {
+        std::vector<float>&& center, double radius, std::vector<Rid>&& d) {
         Rid null(0, 0, 0);
+        Records nullrecord;
         return std::make_unique<BallTreeLeaf>(
-            std::move(center), radius, std::move(data), std::move(null));
+            std::move(center), radius, std::move(d), std::move(null),
+            std::move(nullrecord));
+    }
+
+    static Pointer Create(
+        std::vector<float>&& center, double radius, Records records) {
+        Rid null(0, 0, 0);
+        std::vector<Rid> d;
+        return std::make_unique<BallTreeLeaf>(
+            std::move(center), radius, std::move(d), std::move(null),
+            std::move(records));
     }
 
     BallTreeLeaf(
-        std::vector<float>&& center, double radius, std::vector<Rid>&& data,
-        Rid&& r)
+        std::vector<float>&& center, double radius, std::vector<Rid>&& d,
+        Rid&& r, Records records)
         : BallTreeNode(std::move(center), radius, std::move(r)),
-        data(std::move(data)) {}
+        data(std::move(d)), raw_data(std::move(records)) {}
 
-    virtual void Accept(BallTreeVisitor& v) const override {
+    virtual void Accept(BallTreeVisitor& v) override {
         v.Visit(this);
     }
 
     std::vector<Rid> data;
+    Records raw_data;
 };
 
 

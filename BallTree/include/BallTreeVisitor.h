@@ -8,8 +8,8 @@ struct BallTreeLeaf;
 
 class BallTreeVisitor {
   public:
-    virtual void Visit(const BallTreeBranch*) = 0;
-    virtual void Visit(const BallTreeLeaf*) = 0;
+    virtual void Visit(BallTreeBranch*) = 0;
+    virtual void Visit(BallTreeLeaf*) = 0;
 };
 
 #endif  //__BALL_TREE_VISITOR

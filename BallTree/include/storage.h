@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include "Utility.h"
 #include "record.h"
 #include "rid.h"
@@ -31,55 +32,66 @@ class FixedLengthStorage {
     using BitSet = std::vector<bool>;
     using PagePtr = std::shared_ptr<Page>;
   public:
-    FixedLengthStorage(int record_size) {
+    FixedLengthStorage(int slot_size) {
         static_assert(
             MaxPageInMemory == -1,
             "only memory only storage can use this constructor");
     }
 
     FixedLengthStorage(
-        int record_size, const std::string& name, const Path& dest_dir)
-        : record_size(record_size),
+        int slot_size, const std::string& name, const Path& dest_dir = "./")
+        : slot_size(slot_size),
           name(name),
           dest_dir(dest_dir),
-          page_num(0),
           is_referenced(MaxPageInMemory, false),
           is_dirty(MaxPageInMemory, false),
           frames(MaxPageInMemory, nullptr),
           buffer_ptr(new Byte[buffer_size]()) {
-        static_assert(MaxPageInMemory > 0, "MaxPageInMemory should be > 0 when using this constructor");
-        auto fs = getFs();
-        if (fs.tellg() == 0) {
-            fs.write(reinterpret_cast<char *>(&this->page_num), sizeof(this->page_num));
-        } else {
-            fs.read(reinterpret_cast<char *>(&this->page_num), sizeof(this->page_num));
-        }
+            static_assert(MaxPageInMemory > 0, "MaxPageInMemory should be > 0 when using this constructor");
+            auto indexFs = this->getIndexFs<this->in_mode>();
+            indexFs.seekg(0, std::ios::end);
+            if (indexFs.tellg() > 0) {
+                // 文件非空: 从文件读取 page_num
+                this->readPageNum();
+            }
     }
 
     template <typename T>
     Rid Put(const T &data) {
-        auto cur_size = this->page_to_frame_map.size();
         PagePtr non_full_page_ptr = nullptr;
+        std::size_t frame_id = 0;
+        // 尝试从内存中的缓存页中找到还没满的页面
         for (auto &pair : this->page_to_frame_map) {
-            auto &cur_page_ptr = this->frames[pair.second];
+            frame_id = pair.second;
+            auto &cur_page_ptr = this->frames[frame_id];
             if (cur_page_ptr->isFull()) continue;
+            // 找到了
             non_full_page_ptr = cur_page_ptr;
             break;
         }
-        // all pages are full
         if (not non_full_page_ptr) {
-            // create new page
-            auto frame_id = this->swapVictimPageOut();
-            non_full_page_ptr = std::make_shared<Page>(this->page_num, this->record_size, DataType, this->getFrameAddr(frame_id), this->page_size_in_k);
+            // 如果内存中的缓存页都满了: 这里就直接创建一个新的页面
+            // 换出一个旧的, 得到 frame_id
+            frame_id = this->swapPageOut();
+            // 创建新的
+            non_full_page_ptr = std::make_shared<Page>(this->page_num,
+                                                       this->slot_size,
+                                                       DataType,
+                                                       this->getFrameAddr(frame_id),
+                                                       this->page_size_in_k);
             this->initNewPage(non_full_page_ptr, frame_id);
-            this->is_dirty[frame_id] = true;
+            // 总页数增加
             ++this->page_num;
         }
+        // 未满页的 page_id
         auto page_id = non_full_page_ptr->PageId();
-        auto frame_id = this->page_to_frame_map.at(page_id);
         this->is_referenced[frame_id] = true;
+        this->is_dirty[frame_id] = true;
+
+        // 插入新的槽
         auto insert_result = non_full_page_ptr->insert();
         auto cur_slot = std::get<1>(insert_result);
+        // 设置槽中数据
         cur_slot.Set(data);
         return std::get<0>(insert_result);
     }
@@ -87,91 +99,117 @@ class FixedLengthStorage {
     template <typename T>
     std::unique_ptr<T> Get(const Rid &rid) {
         if (not this->pageInMemory(rid.page_id)) {
-            this->swapPageIn(rid.page_id, this->swapVictimPageOut());
+            // 把想要的 rid.page_id 换入
+            this->swapPageIn(rid.page_id, this->swapPageOut());
         }
         auto frame_id = this->page_to_frame_map[rid.page_id];
-        auto &cur_page_ptr = this->frames[frame_id];
         this->is_referenced[frame_id] = true;
+        // 得到想要的页面
+        auto &cur_page_ptr = this->frames[frame_id];
+        // 得到想要的槽
         auto cur_slot = cur_page_ptr->select(rid.slot_id);
         std::unique_ptr<T> ptr;
+        // 复制出槽中数据
         cur_slot.Get(ptr);
         return std::move(ptr);
     }
 
     ~FixedLengthStorage() {
-        auto fs = getFs();
+        // 一页一页写出
         for (auto &pair : this->page_to_frame_map) {
-            if (not this->is_dirty[pair.second]) continue;
-            auto &cur_page_ptr = this->frames[pair.second];
-            cur_page_ptr->sync(fs);
+            auto page_id = pair.first;
+            auto frame_id = pair.second;
+            if (not this->is_dirty[frame_id]) continue;
+            auto fs = this->getFs<this->out_mode>(page_id);
+            this->writePageOut(frame_id, fs);
         }
+        this->writePageNum();
     }
 
-    int RecordSize() const {
-        return this->record_size;
+    int SlotSize() const {
+        return this->slot_size;
     }
   private:
 
-    bool pageInMemory(int page_id) {
+    bool pageInMemory(int page_id) const {
         return this->page_to_frame_map.find(page_id) != this->page_to_frame_map.end();
     }
 
+    bool framesFull() const {
+        return this->page_to_frame_map.size() == MaxPageInMemory;
+    }
+
+    void initNewPage(PagePtr new_page_ptr, std::size_t frame_id) {
+        this->frames[frame_id] = new_page_ptr;
+        this->page_to_frame_map.insert({ new_page_ptr->PageId(), frame_id });
+    }
+
     /**
-     * @Description Swaping the page in frame when the frames
-     * @Return the swap-out frame_id
+     * @description 尝试找到一个牺牲页 并把它换出去 得到空槽
+     * @return 返回空槽id
      */
-    std::size_t swapVictimPageOut() {
+    std::size_t swapPageOut() {
         auto victim_page_id = this->findVictimPage();
-        auto fs = getFs();
-        // swap out
-        std::size_t frame_id = 0;
         if (victim_page_id == -1) {
-            frame_id = this->page_to_frame_map.size();
-        } else {
-            frame_id = this->page_to_frame_map.at(victim_page_id);
-            if (this->is_dirty[frame_id]) {
-                this->swapPageOut(frame_id, fs);
-            }
-            this->page_to_frame_map.erase(victim_page_id);
+            // 没有牺牲页 说明还有得缓存 直接返回新的帧id
+            return this->page_to_frame_map.size();
         }
+        // 得到牺牲页的帧id 然后考虑把它换出去
+        auto frame_id = this->page_to_frame_map.at(victim_page_id);
+        if (this->is_dirty[frame_id]) {
+            auto fs = this->getFs<this->out_mode>(victim_page_id);
+            this->writePageOut(frame_id, fs);
+        }
+        this->frames[frame_id].reset();
+        this->page_to_frame_map.erase(victim_page_id);
         return frame_id;
     }
 
-    void swapPageOut(std::size_t frame_id, std::ostream &out) {
+    void writePageOut(std::size_t frame_id, std::ostream &out) {
+        // 找到对应页　地址偏移一波　写回去
         auto page_ptr = this->frames[frame_id];
-        auto page_position = this->begin_pos + page_ptr->PageId() * this->record_size;
+        auto page_position = this->begin_pos + page_ptr->PageId() * this->page_size;
         out.seekp(page_position);
         page_ptr->sync(out);
     }
 
     void swapPageIn(int page_in_id, std::size_t frame_id) {
-        auto fs = getFs();
-        return this->swapPageIn(page_in_id, frame_id, fs);
+        auto fs = this->getFs<this->in_mode>(page_in_id);
+        return this->readPageIn(page_in_id, frame_id, fs);
     }
 
-    void swapPageIn(int page_in_id, std::size_t frame_id, std::istream &in) {
-        auto page_position = this->begin_pos + page_in_id * this->record_size;
+    void readPageIn(int page_in_id, std::size_t frame_id, std::istream &in) {
+        // 找到对应页　地址偏移一波　读进来
+        auto page_position = this->begin_pos + page_in_id * this->page_size;
         in.seekg(page_position);
-        auto new_page_ptr = std::make_shared<Page>(page_in_id, in, this->getFrameAddr(frame_id), this->page_size_in_k);
+        auto new_page_ptr = std::make_shared<Page>(page_in_id,
+                                                   in,
+                                                   this->getFrameAddr(frame_id),
+                                                   this->page_size_in_k);
+        // 构建各种关系
         this->initNewPage(new_page_ptr, frame_id);
         this->is_dirty[frame_id] = false;
-    }
-
-    void initNewPage(PagePtr new_page_ptr, std::size_t frame_id) {
-        this->frames[frame_id] = new_page_ptr;
         this->is_referenced[frame_id] = true;
-        this->page_to_frame_map.insert({ new_page_ptr->PageId(), frame_id });
     }
 
+    /**
+     * @description 如果换出后不马上换入，就会gg，作者太菜了
+     * @return 牺牲页的 page_id
+     */
     int findVictimPage() {
         static_assert(MaxPageInMemory > 0, "MaxPageInMemory should be > 0 when calling findVictimPage");
+        // 没满 就没有页要牺牲
         if (not this->framesFull()) {
             return -1;
         }
 
+        // 帧存满页 现在有一页需要牺牲
+        // 循环 + 引用位　判断
         static int64_t victim_frame_id = 0;
         for (std::size_t index = 0; index < MaxPageInMemory; ++index) {
+            if (not this->frames[victim_frame_id]) continue;
             if (this->is_referenced[victim_frame_id]) {
+                // 如果引用位有效　关闭引用位
                 this->is_referenced[victim_frame_id] = false;
             } else {
                 return this->frames[victim_frame_id]->PageId();
@@ -179,40 +217,69 @@ class FixedLengthStorage {
 
             victim_frame_id = (victim_frame_id + 1) % MaxPageInMemory;
         }
-        return this->frames[victim_frame_id]->PageId();
+        if (this->frames[victim_frame_id]) {
+            return this->frames[victim_frame_id]->PageId();
+        }
+        assert("didn't swap in right after swapping out?");
     }
 
-    bool framesFull() const {
-        return this->page_to_frame_map.size() == MaxPageInMemory;
-    }
-
-    std::fstream getFs() const {
-        std::fstream fs(this->dest_dir + this->name, openmode);
+    template <std::ios::openmode openmode>
+    std::fstream getFs(int page_id) {
+        std::stringstream ss;
+        ss << "." << page_id;
+        auto filename = this->dest_dir + this->name + ss.str();
+        std::fstream fs(filename, openmode);
         return std::move(fs);
     }
 
+    template <std::ios::openmode openmode>
+    std::fstream getIndexFs() {
+        auto filename = this->dest_dir + this->name + ".index";
+        std::fstream fs(filename, openmode);
+        return std::move(fs);
+    }
+
+    void readPageNum() {
+        auto indexFs = this->getIndexFs<this->in_mode>();
+        auto page_num_addr = reinterpret_cast<char *>(&this->page_num);
+        constexpr auto page_num_size = sizeof(this->page_num);
+        indexFs.seekg(0);
+        indexFs.read(page_num_addr, page_num_size);
+    }
+
+    void writePageNum() {
+        auto indexFs = this->getIndexFs<this->out_mode>();
+        auto page_num_addr = reinterpret_cast<char *>(&this->page_num);
+        constexpr auto page_num_size = sizeof(this->page_num);
+        indexFs.seekp(0);
+        indexFs.write(page_num_addr, page_num_size);
+    }
+
     inline Byte *getFrameAddr(std::size_t frame_id) const {
-        return reinterpret_cast<Byte *>(reinterpret_cast<Byte (*)[page_size]>(this->buffer_ptr.get()) + frame_id);
+        auto buffer_ptr = reinterpret_cast<Byte (*)[page_size]>(this->buffer_ptr.get());
+        return reinterpret_cast<Byte *>(buffer_ptr + frame_id);
     }
 
   private:
-    int record_size;
+    int slot_size;
     std::string name;
     Path dest_dir;
-    int page_num;
+    int page_num = 0;
 
     BitSet is_referenced;
     BitSet is_dirty;
     std::vector<PagePtr> frames;
     std::unordered_map<int, std::size_t> page_to_frame_map;
     std::unique_ptr<Byte> buffer_ptr;
+    std::fstream fs;
 
-    static constexpr std::ios_base::openmode openmode = std::ios::binary | std::ios::out | std::ios::app;
+    static constexpr std::ios::openmode in_mode = std::ios::binary | std::ios::in;
+    static constexpr std::ios::openmode out_mode = std::ios::binary | std::ios::out;
+    static constexpr std::ios::openmode openmode = std::ios::binary | std::ios::in | std::ios::out;
     static constexpr std::size_t page_size_in_k = (BytesPerPage + 1023) / 1024;
     static constexpr std::size_t page_size = page_size_in_k * 1024;
     static constexpr std::size_t buffer_size = page_size * MaxPageInMemory;
-    static constexpr std::size_t begin_pos = sizeof(page_num) + sizeof(Rid);
-    // page_num and Rid of Tree Root
+    static constexpr std::size_t begin_pos = 0;
 };
 
 // 不知道为什么要加下面这一坨才能沃克
@@ -233,18 +300,18 @@ class RecordStorage {
      * record, may first try to store in memory, then
      * flush to file if specified
      */
-    virtual Rid Put(const Record&) = 0;
+    virtual Rid Put(const Record&) {};
 
     /**
      * finds the record specified by rid
      * @return nullptr if not found
      */
-    virtual std::unique_ptr<Record> Get(const Rid& rid) = 0;
+    virtual std::unique_ptr<Record> Get(const Rid& rid) {};
 
     /**
      * dump all data to specific path,
      */
-    virtual void DumpTo(const Path& dest_dir) = 0;
+    virtual void DumpTo(const Path& dest_dir) {};
 
     virtual ~RecordStorage() {}
 };
@@ -259,7 +326,7 @@ class NodeStorage {
     std::unique_ptr<BallTreeNode> Get(Rid rid);
     Rid Put(const BallTreeNode& node);
 
-    std::unique_ptr<BallTreeNode> GetRoot(Rid rid);
+    std::unique_ptr<BallTreeNode> GetRoot();
     Rid PutRoot(const BallTreeNode& node);
 
     inline int GetDimension() {
@@ -313,12 +380,14 @@ class SimpleStorage : public RecordStorage {
 
 namespace storage_factory {
 
-inline std::unique_ptr<SimpleStorage> GetMemoryOnlyStorage() {
-    return nullptr;
+inline std::unique_ptr<RecordStorage> GetRecordStorage(Path& dest_dir, int dim) {
+    return std::make_unique<RecordStorage>(dest_dir, dim);
 }
-inline std::unique_ptr<SimpleStorage> GetNormalStorage(const Path& dest_dir) {
-    return nullptr;
+
+inline std::unique_ptr<NodeStorage> GetNodeStorage(Path& dest_dir, int dim) {
+    return std::make_unique<NodeStorage>(dest_dir, dim);
 }
+
 
 inline std::unique_ptr<SimpleStorage> GetSimpleStorage() {
     return std::make_unique<SimpleStorage>();

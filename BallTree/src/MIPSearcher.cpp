@@ -1,8 +1,8 @@
 #include "MIPSearcher.h"
 
-void MIPSearcher::Visit(const BallTreeBranch* branch) {
-    double left_mip = PossibleMip(node_storage_->Get(branch->r_left));
-    double right_mip = PossibleMip(node_storage_->Get(branch->r_right));
+void MIPSearcher::Visit(BallTreeBranch* branch) {
+    double left_mip = PossibleMip(node_storage_->Get(branch->r_left).get());
+    double right_mip = PossibleMip(node_storage_->Get(branch->r_right).get());
     if (left_mip > right_mip and left_mip > cur_mip_) {
         node_storage_->Get(branch->r_left)->Accept(*this);
         if (right_mip > cur_mip_) {
@@ -15,7 +15,7 @@ void MIPSearcher::Visit(const BallTreeBranch* branch) {
         }
     } 
 }
-void MIPSearcher::Visit(const BallTreeLeaf* leaf) {
+void MIPSearcher::Visit(BallTreeLeaf* leaf) {
     for (const auto& rid : leaf->data) {
         auto record = record_storage_->Get(rid);
         double innerproduct = InnerProduct(needle, record->data);

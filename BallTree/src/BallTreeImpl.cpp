@@ -5,8 +5,12 @@ using Records = std::vector<Record::Pointer>;
 /**
  * build the balltree from index file
  */
-BallTreeImpl::BallTreeImpl(const Path& index_path) {
-    
+BallTreeImpl::BallTreeImpl(Path& index_path) {
+    if (record_storage_) {
+        record_storage_ = storage_factory::GetRecordStorage(index_path, dim);
+        node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
+    }
+    root_ = node_storage_->GetRoot();
 }
 
 /**
@@ -15,11 +19,8 @@ BallTreeImpl::BallTreeImpl(const Path& index_path) {
 BallTreeImpl::BallTreeImpl(Records&& records)
     :
 #ifdef BALLTREE_TESTING_ALGORITHM
-      record_storage_(storage_factory::GetSimpleStorage())
-#else
-      record_storage_(storage_factory::GetMemoryOnlyStorage())
+      record_storage_(storage_factory::GetSimpleStorage()),
 #endif
-      ,
       root_(BuildTree(std::move(records))) {
 }
 
@@ -94,11 +95,10 @@ std::pair<Records, Records> BallTreeImpl::SplitRecord(Records&& records) {
  *  Functions for building Ball Tree Node 
  */
 
-BallTreeLeaf::Pointer BallTreeImpl::BuildTreeLeaf(const Records& records) {
-    std::vector<Rid> rids(StoreAll(records));
+BallTreeLeaf::Pointer BallTreeImpl::BuildTreeLeaf(Records& records) {
     std::vector<float> center(CalculateCenter(records));
     double radius(CalculateRadius(records, center));
-    return BallTreeLeaf::Create(std::move(center), radius, std::move(rids));
+    return BallTreeLeaf::Create(std::move(center), radius, std::move(records));
 }
 
 
@@ -134,8 +134,11 @@ std::vector<Rid> BallTreeImpl::StoreAll(const Records& records) {
 /**
  * store the balltree to an index file
  */
-bool BallTreeImpl::StoreTree(const Path& index_path) {
-    node_storage_->set(index_path);
+bool BallTreeImpl::StoreTree(Path& index_path) {
+    if (record_storage_) {
+        record_storage_ = storage_factory::GetRecordStorage(index_path, dim);
+        node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
+    }
 
     // postoder
     std::stack<BallTreeNode*> in_stack, out_stack;
@@ -157,10 +160,15 @@ bool BallTreeImpl::StoreTree(const Path& index_path) {
     while (!out_stack.empty()) {
         BallTreeNode* cur = out_stack.top();
         out_stack.pop();
-        NodeStorer visitor(node_storage_.get());
+        NodeStorer visitor(node_storage_.get(), record_storage_.get());
         cur->Accept(visitor);
     }
+    node_storage_->PutRoot(*root_.get());
 
+    root_ = nullptr;
+    record_storage_ = nullptr;
+    node_storage_ = nullptr;
+    return true;
 }
 
 /**
@@ -191,3 +199,7 @@ bool BallTreeImpl::Delete(const std::vector<float>& v) {
     return false;
 }
 
+
+bool BallTreeImpl::SetDimension(int d) {
+    dim = d;
+}

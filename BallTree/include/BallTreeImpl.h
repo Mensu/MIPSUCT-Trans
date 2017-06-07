@@ -25,7 +25,7 @@ class BallTreeImpl {
     /**
      * build the balltree from index file
      */
-    BallTreeImpl(const Path& index_path);
+    BallTreeImpl(Path& index_path);
 
     /**
      * build the balltree from plain index and vector data
@@ -55,7 +55,7 @@ class BallTreeImpl {
 
     std::vector<Rid> StoreAll(const Records& records);
 
-    BallTreeLeaf::Pointer BuildTreeLeaf(const Records& records);
+    BallTreeLeaf::Pointer BuildTreeLeaf(Records& records);
 
     BallTreeBranch::Pointer BuildTreeBranch(Records&& data);
 
@@ -65,13 +65,15 @@ class BallTreeImpl {
     /**
      * store the balltree to an index file
      */
-    bool StoreTree(const Path& index_path);
+    bool StoreTree(Path& index_path);
 
     /**
      * returns the index of the vector with the maximum inner product with the
      * vector given
      */
     std::pair<int, double> Search(const std::vector<float>& v);
+
+    bool SetDimension(int d);
 
     /**
      * insert given vector to the balltree (not written now)
@@ -88,6 +90,7 @@ class BallTreeImpl {
     std::unique_ptr<RecordStorage> record_storage_;
     std::unique_ptr<NodeStorage> node_storage_;
     std::unique_ptr<BallTreeNode> root_;
+    int dim;
 };
 
 #endif
