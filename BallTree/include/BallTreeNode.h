@@ -53,7 +53,6 @@ struct BallTreeBranch : BallTreeNode {
           right(std::move(right)),
           r_left(std::move(l)), r_right(std::move(r)) {}
 
-    // don't use
     virtual void Accept(BallTreeVisitor& v) const override {
         v.Visit(this);
     }
