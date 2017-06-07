@@ -39,9 +39,9 @@ class FixedLengthStorage {
 
     FixedLengthStorage(
         int record_size, const std::string& name, const Path& dest_dir)
-        : // record_size(record_size),
+        : record_size(record_size),
           name(name),
-          // dest_dir(dest_dir),
+          dest_dir(dest_dir),
           page_num(0),
           is_referenced(MaxPageInMemory, false),
           is_dirty(MaxPageInMemory, false),
@@ -56,7 +56,8 @@ class FixedLengthStorage {
         }
     }
 
-    Rid Alloc() {
+    template <typename T>
+    Rid Put(const T &data) {
         auto cur_size = this->page_to_frame_map.size();
         PagePtr non_full_page_ptr = nullptr;
         for (auto &pair : this->page_to_frame_map) {
@@ -70,22 +71,31 @@ class FixedLengthStorage {
             // create new page
             auto frame_id = this->swapVictimPageOut();
             non_full_page_ptr = std::make_shared<Page>(this->page_num, this->record_size, DataType, this->getFrameAddr(frame_id), this->page_size_in_k);
-
             this->initNewPage(non_full_page_ptr, frame_id);
+            this->is_dirty[frame_id] = true;
             ++this->page_num;
         }
-        return std::get<0>(non_full_page_ptr->insert());
+        auto page_id = non_full_page_ptr->PageId();
+        auto frame_id = this->page_to_frame_map.at(page_id);
+        this->is_referenced[frame_id] = true;
+        auto insert_result = non_full_page_ptr->insert();
+        auto cur_slot = std::get<1>(insert_result);
+        cur_slot.Set(data);
+        return std::get<0>(insert_result);
     }
 
-    Slot Get(const Rid& rid, bool is_mutable = false) {
+    template <typename T>
+    std::unique_ptr<T> Get(const Rid &rid) {
         if (not this->pageInMemory(rid.page_id)) {
             this->swapPageIn(rid.page_id, this->swapVictimPageOut());
         }
         auto frame_id = this->page_to_frame_map[rid.page_id];
         auto &cur_page_ptr = this->frames[frame_id];
-        this->is_dirty[frame_id] = is_mutable;
         this->is_referenced[frame_id] = true;
-        return cur_page_ptr->select(rid.slot_id);
+        auto cur_slot = cur_page_ptr->select(rid.slot_id);
+        std::unique_ptr<T> ptr;
+        cur_slot.Get(ptr);
+        return std::move(ptr);
     }
 
     ~FixedLengthStorage() {
