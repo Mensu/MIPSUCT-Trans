@@ -148,3 +148,22 @@ bool Slot::Set(const BallTreeLeaf& leaf) {
   *rid_size = leaf.data.size();
   return true;
 }
+
+size_t Slot::GetSize(Rid::DataType type, int dimension) {
+    size_t node_size = sizeof(double) + sizeof(float) * dimension + sizeof(size_t);
+    size_t ret = 0;
+    switch (type) {
+    case Rid::branch:
+        ret = node_size + sizeof(Rid) * 2 + sizeof(size_t);
+        break;
+    case Rid::leaf:
+        ret = node_size + sizeof(Rid) * dimension;
+        break;
+    case Rid::record:
+        ret = sizeof(Rid) * N0 + sizeof(size_t);
+        break;
+    default:
+        ret = 0;
+    }
+    return ret;
+}

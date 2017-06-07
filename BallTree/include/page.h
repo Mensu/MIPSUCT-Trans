@@ -52,7 +52,6 @@ class Page {
      */
     bool drop(const int& slot_id);
 
-    static size_t GetSize(Rid::DataType type, int dimension);
 
     inline bool isFull() { return m_slot_num >= m_total_slot; }
 
