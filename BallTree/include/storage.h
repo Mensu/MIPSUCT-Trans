@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include "Utility.h"
 #include "record.h"
 #include "rid.h"
@@ -38,25 +39,20 @@ class FixedLengthStorage {
     }
 
     FixedLengthStorage(
-        int slot_size, const std::string& name, const Path& dest_dir)
+        int slot_size, const std::string& name, const Path& dest_dir = "./")
         : slot_size(slot_size),
           name(name),
           dest_dir(dest_dir),
-          page_num(0),
           is_referenced(MaxPageInMemory, false),
           is_dirty(MaxPageInMemory, false),
           frames(MaxPageInMemory, nullptr),
           buffer_ptr(new Byte[buffer_size]()) {
             static_assert(MaxPageInMemory > 0, "MaxPageInMemory should be > 0 when using this constructor");
-            auto fs = getFs();
-            auto page_num_addr = reinterpret_cast<char *>(&this->page_num);
-            constexpr auto page_num_size = sizeof(this->page_num);
-            if (fs.tellg() == 0) {
-                // 空文件: 写入 page_num = 0
-                fs.write(page_num_addr, page_num_size);
-            } else {
+            auto indexFs = this->getIndexFs<this->in_mode>();
+            indexFs.seekg(0, std::ios::end);
+            if (indexFs.tellg() > 0) {
                 // 文件非空: 从文件读取 page_num
-                fs.read(page_num_addr, page_num_size);
+                this->readPageNum();
             }
     }
 
@@ -119,17 +115,15 @@ class FixedLengthStorage {
     }
 
     ~FixedLengthStorage() {
-        auto fs = getFs();
         // 一页一页写出
         for (auto &pair : this->page_to_frame_map) {
+            auto page_id = pair.first;
             auto frame_id = pair.second;
             if (not this->is_dirty[frame_id]) continue;
-            auto &cur_page_ptr = this->frames[frame_id];
-            cur_page_ptr->sync(fs);
+            auto fs = this->getFs<this->out_mode>(page_id);
+            this->writePageOut(frame_id, fs);
         }
-        auto page_num_addr = reinterpret_cast<char *>(&this->page_num);
-        constexpr auto page_num_size = sizeof(this->page_num);
-        fs.write(page_num_addr, page_num_size);
+        this->writePageNum();
     }
 
     int SlotSize() const {
@@ -163,7 +157,7 @@ class FixedLengthStorage {
         // 得到牺牲页的帧id 然后考虑把它换出去
         auto frame_id = this->page_to_frame_map.at(victim_page_id);
         if (this->is_dirty[frame_id]) {
-            auto fs = getFs();
+            auto fs = this->getFs<this->out_mode>(victim_page_id);
             this->writePageOut(frame_id, fs);
         }
         this->frames[frame_id].reset();
@@ -180,7 +174,7 @@ class FixedLengthStorage {
     }
 
     void swapPageIn(int page_in_id, std::size_t frame_id) {
-        auto fs = getFs();
+        auto fs = this->getFs<this->in_mode>(page_in_id);
         return this->readPageIn(page_in_id, frame_id, fs);
     }
 
@@ -229,9 +223,36 @@ class FixedLengthStorage {
         assert("didn't swap in right after swapping out?");
     }
 
-    std::fstream getFs() const {
-        std::fstream fs(this->dest_dir + this->name, openmode);
+    template <std::ios::openmode openmode>
+    std::fstream getFs(int page_id) {
+        std::stringstream ss;
+        ss << "." << page_id;
+        auto filename = this->dest_dir + this->name + ss.str();
+        std::fstream fs(filename, openmode);
         return std::move(fs);
+    }
+
+    template <std::ios::openmode openmode>
+    std::fstream getIndexFs() {
+        auto filename = this->dest_dir + this->name + ".index";
+        std::fstream fs(filename, openmode);
+        return std::move(fs);
+    }
+
+    void readPageNum() {
+        auto indexFs = this->getIndexFs<this->in_mode>();
+        auto page_num_addr = reinterpret_cast<char *>(&this->page_num);
+        constexpr auto page_num_size = sizeof(this->page_num);
+        indexFs.seekg(0);
+        indexFs.read(page_num_addr, page_num_size);
+    }
+
+    void writePageNum() {
+        auto indexFs = this->getIndexFs<this->out_mode>();
+        auto page_num_addr = reinterpret_cast<char *>(&this->page_num);
+        constexpr auto page_num_size = sizeof(this->page_num);
+        indexFs.seekp(0);
+        indexFs.write(page_num_addr, page_num_size);
     }
 
     inline Byte *getFrameAddr(std::size_t frame_id) const {
@@ -243,20 +264,22 @@ class FixedLengthStorage {
     int slot_size;
     std::string name;
     Path dest_dir;
-    int page_num;
+    int page_num = 0;
 
     BitSet is_referenced;
     BitSet is_dirty;
     std::vector<PagePtr> frames;
     std::unordered_map<int, std::size_t> page_to_frame_map;
     std::unique_ptr<Byte> buffer_ptr;
+    std::fstream fs;
 
-    static constexpr std::ios_base::openmode openmode = std::ios::binary | std::ios::out | std::ios::app;
+    static constexpr std::ios::openmode in_mode = std::ios::binary | std::ios::in;
+    static constexpr std::ios::openmode out_mode = std::ios::binary | std::ios::out;
+    static constexpr std::ios::openmode openmode = std::ios::binary | std::ios::in | std::ios::out;
     static constexpr std::size_t page_size_in_k = (BytesPerPage + 1023) / 1024;
     static constexpr std::size_t page_size = page_size_in_k * 1024;
     static constexpr std::size_t buffer_size = page_size * MaxPageInMemory;
-    static constexpr std::size_t begin_pos = sizeof(page_num) + sizeof(Rid);
-    // page_num and Rid of Tree Root
+    static constexpr std::size_t begin_pos = 0;
 };
 
 // 不知道为什么要加下面这一坨才能沃克
