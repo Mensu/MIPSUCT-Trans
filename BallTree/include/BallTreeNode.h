@@ -66,27 +66,28 @@ struct BallTreeLeaf : BallTreeNode {
     using Records = std::vector<Record::Pointer>;
 
     static Pointer Create(
-        std::vector<float>&& center, double radius, std::vector<Rid>&& data) {
+        std::vector<float>&& center, double radius, std::vector<Rid>&& d) {
         Rid null(0, 0, 0);
         Records nullrecord;
         return std::make_unique<BallTreeLeaf>(
-            std::move(center), radius, std::move(data), std::move(null),
+            std::move(center), radius, std::move(d), std::move(null),
             std::move(nullrecord));
     }
 
     static Pointer Create(
         std::vector<float>&& center, double radius, Records records) {
         Rid null(0, 0, 0);
+        std::vector<Rid> d;
         return std::make_unique<BallTreeLeaf>(
-            std::move(center), radius, std::move(data), std::move(null),
+            std::move(center), radius, std::move(d), std::move(null),
             std::move(records));
     }
 
     BallTreeLeaf(
-        std::vector<float>&& center, double radius, std::vector<Rid>&& data,
+        std::vector<float>&& center, double radius, std::vector<Rid>&& d,
         Rid&& r, Records records)
         : BallTreeNode(std::move(center), radius, std::move(r)),
-        data(std::move(data), raw_data(std::move(records))) {}
+        data(std::move(d)), raw_data(std::move(records)) {}
 
     virtual void Accept(BallTreeVisitor& v) const override {
         v.Visit(this);
