@@ -233,18 +233,18 @@ class RecordStorage {
      * record, may first try to store in memory, then
      * flush to file if specified
      */
-    virtual Rid Put(const Record&) = 0;
+    virtual Rid Put(const Record&) {};
 
     /**
      * finds the record specified by rid
      * @return nullptr if not found
      */
-    virtual std::unique_ptr<Record> Get(const Rid& rid) = 0;
+    virtual std::unique_ptr<Record> Get(const Rid& rid) {};
 
     /**
      * dump all data to specific path,
      */
-    virtual void DumpTo(const Path& dest_dir) = 0;
+    virtual void DumpTo(const Path& dest_dir) {};
 
     virtual ~RecordStorage() {}
 };

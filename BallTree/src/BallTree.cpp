@@ -15,8 +15,8 @@ Records BallTree::ArrayToVector(int n, int d, float** data) {
 }
 
 bool BallTree::buildTree(int n, int d, float** data) {
-    dim = d;
     impl_ = std::make_unique<BallTreeImpl>(ArrayToVector(n, d, data));
+    impl_->SetDimension(d);
     return true;
 }
 
@@ -24,11 +24,13 @@ bool BallTree::storeTree(const char* index_path) {
     if (not impl_) {
         return false;
     }
-    return impl_->StoreTree(index_path);
+    std::string index(index_path);
+    return impl_->StoreTree(index);
 }
 
 bool BallTree::restoreTree(const char* index_path) {
-    impl_ = std::make_unique<BallTreeImpl>(index_path);
+    std::string index(index_path);
+    impl_ = std::make_unique<BallTreeImpl>(index);
     return true;
 }
 

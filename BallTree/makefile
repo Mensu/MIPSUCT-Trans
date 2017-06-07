@@ -6,7 +6,7 @@ SRC_DIR := src
 TEST_DIR := test
 INCLUDE := -I./$(INC_DIR)
 
-test: $(BUILD_DIR)/BallTree.o \
+test_main: $(BUILD_DIR)/BallTree.o \
 	$(BUILD_DIR)/BallTreeImpl.o $(BUILD_DIR)/MIPSearcher.o \
 	$(BUILD_DIR)/Utility.o $(BUILD_DIR)/page.o \
 	$(BUILD_DIR)/slot.o $(BUILD_DIR)/NodeBuilder.o
@@ -31,3 +31,4 @@ clean:
 	@rm -rf $(BUILD_DIR)
 	@rm -rf $(BIN_DIR)
 	@rm -rf main
+	@rm -rf test_main

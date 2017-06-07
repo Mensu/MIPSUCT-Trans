@@ -5,7 +5,7 @@ using Records = std::vector<Record::Pointer>;
 /**
  * build the balltree from index file
  */
-BallTreeImpl::BallTreeImpl(const Path& index_path) {
+BallTreeImpl::BallTreeImpl(Path& index_path) {
     
 }
 
@@ -91,8 +91,7 @@ std::pair<Records, Records> BallTreeImpl::SplitRecord(Records&& records) {
  *  Functions for building Ball Tree Node 
  */
 
-BallTreeLeaf::Pointer BallTreeImpl::BuildTreeLeaf(const Records& records) {
-    // std::vector<Rid> rids(StoreAll(records));
+BallTreeLeaf::Pointer BallTreeImpl::BuildTreeLeaf(Records& records) {
     std::vector<float> center(CalculateCenter(records));
     double radius(CalculateRadius(records, center));
     return BallTreeLeaf::Create(std::move(center), radius, std::move(records));
@@ -131,7 +130,7 @@ std::vector<Rid> BallTreeImpl::StoreAll(const Records& records) {
 /**
  * store the balltree to an index file
  */
-bool BallTreeImpl::StoreTree(const Path& index_path) {
+bool BallTreeImpl::StoreTree(Path& index_path) {
     record_storage_ = storage_factory::GetRecordStorage(index_path, dim);
     node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
 
@@ -190,3 +189,7 @@ bool BallTreeImpl::Delete(const std::vector<float>& v) {
     return false;
 }
 
+
+bool BallTreeImpl::SetDimension(int d) {
+    dim = d;
+}

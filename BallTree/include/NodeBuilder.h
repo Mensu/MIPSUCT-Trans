@@ -17,9 +17,9 @@ class NodeStorer : public BallTreeVisitor {
     NodeStorer(NodeStorage* n_storage, RecordStorage* r_storage)
       : node_storage_(n_storage), record_storage_(r_storage) {}
 
-    virtual void Visit(const BallTreeBranch* branch);
+    virtual void Visit(BallTreeBranch* branch);
 
-    virtual void Visit(const BallTreeLeaf* leaf);
+    virtual void Visit(BallTreeLeaf* leaf);
 
     std::vector<Rid> StoreAll(const Records& records);
 

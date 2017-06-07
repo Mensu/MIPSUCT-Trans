@@ -1,18 +1,17 @@
 #include "NodeBuilder.h"
 
 
-NodeStorer::NodeStorer(NodeStorage* n_storage) : node_storage_(n_storage) {}
 
-void NodeStorer::Visit(const BallTreeBranch* branch) {
+void NodeStorer::Visit(BallTreeBranch* branch) {
 	branch->r_left = branch->left->rid;
 	branch->r_right = branch->right->rid;
-	Rid r = node_storage_->Put(branch);
-	leaf->rid = r;
+	Rid r = node_storage_->Put(*branch);
+	branch->rid = r;
 }
 
-void NodeStorer::Visit(const BallTreeLeaf* leaf) {
-	std::vector<Rid> rids(StoreAll(records));
-	Rid r = node_storage_->Put(leaf);
+void NodeStorer::Visit(BallTreeLeaf* leaf) {
+	std::vector<Rid> rids(StoreAll(leaf->raw_data));
+	Rid r = node_storage_->Put(*leaf);
 	leaf->rid = r;
 }
 
@@ -31,10 +30,10 @@ std::vector<Rid> NodeStorer::StoreAll(const Records& records) {
 
 void NodeBuilder::Visit(const BallTreeBranch* branch) {
 	if (branch->left) {
-		v.push(branch->left);
+		v.push_back(branch->left.get());
 	}
 	if (branch->right) {
-		v.push(branch->right);
+		v.push_back(branch->right.get());
 	}
 }
 

@@ -11,7 +11,7 @@
 struct BallTreeNode {
     using Pointer = std::unique_ptr<BallTreeNode>;
 
-    virtual void Accept(BallTreeVisitor& v) const = 0;
+    virtual void Accept(BallTreeVisitor& v) = 0;
 
     std::vector<float> center;
     double radius;
@@ -53,7 +53,7 @@ struct BallTreeBranch : BallTreeNode {
           right(std::move(right)),
           r_left(std::move(l)), r_right(std::move(r)) {}
 
-    virtual void Accept(BallTreeVisitor& v) const override {
+    virtual void Accept(BallTreeVisitor& v) override {
         v.Visit(this);
     }
 
@@ -89,12 +89,12 @@ struct BallTreeLeaf : BallTreeNode {
         : BallTreeNode(std::move(center), radius, std::move(r)),
         data(std::move(d)), raw_data(std::move(records)) {}
 
-    virtual void Accept(BallTreeVisitor& v) const override {
+    virtual void Accept(BallTreeVisitor& v) override {
         v.Visit(this);
     }
 
     std::vector<Rid> data;
-    std::vector<Record::Pointer> raw_data;
+    Records raw_data;
 };
 
 
