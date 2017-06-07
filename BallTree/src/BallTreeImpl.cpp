@@ -5,8 +5,8 @@ using Records = std::vector<Record::Pointer>;
 /**
  * build the balltree from index file
  */
-BallTreeImpl::BallTreeImpl(Path& index_path) {
-    if (record_storage_) {
+BallTreeImpl::BallTreeImpl(Path& index_path):dim(-1) {
+    if (not record_storage_) {
         record_storage_ = storage_factory::GetRecordStorage(index_path, dim);
         node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
     }
@@ -135,7 +135,7 @@ std::vector<Rid> BallTreeImpl::StoreAll(const Records& records) {
  * store the balltree to an index file
  */
 bool BallTreeImpl::StoreTree(Path& index_path) {
-    if (record_storage_) {
+    if (not record_storage_) {
         record_storage_ = storage_factory::GetRecordStorage(index_path, dim);
         node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
     }
@@ -163,6 +163,7 @@ bool BallTreeImpl::StoreTree(Path& index_path) {
         NodeStorer visitor(node_storage_.get(), record_storage_.get());
         cur->Accept(visitor);
     }
+
     node_storage_->PutRoot(*root_.get());
 
     root_ = nullptr;
@@ -184,6 +185,8 @@ std::pair<int, double> BallTreeImpl::Search(const std::vector<float>& v) {
     root_->Accept(visitor);
     return {visitor.ResultIndex(), visitor.ResultMIP()};
 }
+
+
 
 /**
  * insert given vector to the balltree

@@ -29,6 +29,7 @@ class BallTree {
     int mipSearch(int d, float* query);
 
 
+
     /**
      * Additional task (not written now)
      */

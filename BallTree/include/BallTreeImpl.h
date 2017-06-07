@@ -73,6 +73,7 @@ class BallTreeImpl {
      */
     std::pair<int, double> Search(const std::vector<float>& v);
 
+
     bool SetDimension(int d);
 
     /**

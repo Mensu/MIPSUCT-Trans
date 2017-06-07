@@ -40,7 +40,7 @@ using Netflix = DataSet<kNetflix, 17770, 50>;
 using Yahoo =
     DataSet<kYahoo, 62400, 300>; // shrinked data scale, 624000 -> 62400
 using Mnist = DataSet<kMnist, 60000, 50>;
-
+using Records = std::vector<Record::Pointer>;
 namespace {
 
 using namespace std::string_literals;
@@ -110,8 +110,8 @@ void CheckResult(const Records &data, const Record &query, int answer) {
         if (test_innerproduct > res_innerproduct and datap->index != answer) {
             std::printf(
                 "WARNING! Query %d: Record %d has greater inner product(%lf), "
-                "than answer(%lf)",
-                query.index, datap->index, test_innerproduct, res_innerproduct);
+                "than answer(record: %d)(%lf)\n",
+                query.index, datap->index, test_innerproduct, answer, res_innerproduct);
             return;
         }
     }
@@ -159,8 +159,8 @@ void TestDataSet(DataSet<Name, Scale, Dimension> tag) {
     float** data = TestBuildTree(tag, tree);
     TestStoreTree(tag, tree);
     BallTree tree2;
-    TestRestoreTree(tag, tree);
-    TestSearchTree(tag, tree, data);
+    TestRestoreTree(tag, tree2);
+    TestSearchTree(tag, tree2, data);
     std::printf("\n");
 }
 
@@ -173,7 +173,7 @@ void TestDataSets() {
 } // anonymous namespace
 
 int main() {
-    TestDataSets<Mnist, Netflix>();
+    TestDataSets< Mnist>();
     // char data_path[L], query_path[L];
     // char index_path[L], output_path[L];
     // float **data = nullptr;

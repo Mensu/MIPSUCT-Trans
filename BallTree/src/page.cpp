@@ -81,9 +81,6 @@ void Page::initBitMap() {
     for (IntType i = 0; i < m_bitmap_size; ++i) {
         for (int bit_pos = 0; bit_pos < 8; ++bit_pos) {
             bool valid = bitmap_pos[i] & (1 << bit_pos);
-            if (valid) {
-                m_slot_num++;
-            }
             m_slot_map.push_back(valid);
         }
     }
@@ -91,7 +88,7 @@ void Page::initBitMap() {
 
 void Page::restoreBitMap() {
     if (not m_dirty) return;
-    Byte* end_pos = m_slot_pool + page_size - sizeof(IntType);
+    Byte* end_pos = m_slot_pool + page_size - sizeof(IntType) - sizeof(Rid::DataType);
     auto it = m_slot_map.begin();
     for (Byte* pos = bitmap_pos; pos != end_pos; ++pos) {
         *pos = bitsToByte(it, it + 8);

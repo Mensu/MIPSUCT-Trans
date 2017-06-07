@@ -168,7 +168,7 @@ class FixedLengthStorage {
     void writePageOut(std::size_t frame_id, std::ostream &out) {
         // 找到对应页　地址偏移一波　写回去
         auto page_ptr = this->frames[frame_id];
-        auto page_position = this->begin_pos + page_ptr->PageId() * this->page_size;
+        auto page_position = this->begin_pos;
         out.seekp(page_position);
         page_ptr->sync(out);
     }
@@ -180,7 +180,7 @@ class FixedLengthStorage {
 
     void readPageIn(int page_in_id, std::size_t frame_id, std::istream &in) {
         // 找到对应页　地址偏移一波　读进来
-        auto page_position = this->begin_pos + page_in_id * this->page_size;
+        auto page_position = this->begin_pos;
         in.seekg(page_position);
         auto new_page_ptr = std::make_shared<Page>(page_in_id,
                                                    in,
@@ -382,7 +382,7 @@ class SimpleStorage : public RecordStorage {
 namespace storage_factory {
 
 inline std::unique_ptr<RecordStorage> GetRecordStorage(Path& dest_dir, int dim) {
-    return std::make_unique<RecordStorage>(dest_dir, dim);
+    return std::unique_ptr<RecordStorage>(new NormalStorage(dest_dir, dim));
 }
 
 inline std::unique_ptr<NodeStorage> GetNodeStorage(Path& dest_dir, int dim) {

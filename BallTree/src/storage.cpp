@@ -31,6 +31,7 @@ std::unique_ptr<BallTreeNode> NodeStorage::Get(Rid rid) {
         default:
             break;
     }
+    assert(false);
     return nullptr;
 }
 Rid NodeStorage::Put(const BallTreeNode& node) {
@@ -38,7 +39,7 @@ Rid NodeStorage::Put(const BallTreeNode& node) {
     if (c_node != nullptr) {
         return branch_storage->Put<BallTreeBranch>(*c_node);
     } else {
-        return branch_storage->Put<BallTreeLeaf>(*dynamic_cast<const BallTreeLeaf*>(&node));
+        return leaf_storage->Put<BallTreeLeaf>(*dynamic_cast<const BallTreeLeaf*>(&node));
     }
 }
 
@@ -56,14 +57,15 @@ Rid NodeStorage::PutRoot(const BallTreeNode& node) {
 
 NormalStorage::NormalStorage(const Path& dest_dir, int dimension = -1) {
     if (dimension == -1) {
-        std::ifstream others(dest_dir + root_file, std::ios_base::in | std::ios_base::binary);
+        std::ifstream others(dest_dir + dimension_file, std::ios_base::in | std::ios_base::binary);
         others.seekg(std::ios_base::beg);
         others.read(reinterpret_cast<char*>(&dimension), sizeof(dimension));
     } else {
-        std::ofstream others(dest_dir + root_file, std::ios_base::out | std::ios_base::binary);
+        std::ofstream others(dest_dir + dimension_file, std::ios_base::out | std::ios_base::binary);
         others.seekp(std::ios_base::beg);
         others.write(reinterpret_cast<char*>(&dimension), sizeof(dimension));
     }
+    storage.reset(new RStorage(Slot::GetSize(Rid::record, dimension), "record", dest_dir));
 }
 Rid NormalStorage::Put(const Record& record) {
     return std::move(storage->Put<Record>(record));

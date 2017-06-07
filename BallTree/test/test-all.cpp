@@ -36,7 +36,7 @@ int main() {
     
     sprintf(data_path, "%s/src/dataset.txt", dataset);
     sprintf(query_path, "%s/src/query.txt", dataset);
-    sprintf(index_path, "%s/index", dataset);
+    sprintf(index_path, "%s/index/", dataset);
     sprintf(output_path, "%s/dst/answer.txt", dataset);
     
     if (!read_data(n, d, data, data_path)) {

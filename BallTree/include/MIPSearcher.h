@@ -37,4 +37,6 @@ class MIPSearcher : public BallTreeVisitor {
     NodeStorage* node_storage_;
 };
 
+
+
 #endif

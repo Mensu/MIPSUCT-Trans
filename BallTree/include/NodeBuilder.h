@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <memory>
 #include "storage.h"
 #include "rid.h"
 #include "record.h"
@@ -38,7 +39,7 @@ class NodeBuilder : public BallTreeVisitor {
     virtual void Visit(BallTreeLeaf* leaf);
 
     std::vector<BallTreeNode*> Get() {
-    	return std::move(v);
+    	return v;
     }
 
 

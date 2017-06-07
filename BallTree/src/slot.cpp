@@ -75,8 +75,6 @@ bool Slot::Get(std::unique_ptr<BallTreeLeaf>& pointer) {
  */
 bool Slot::Set(const Record& record) {
   if (type != Rid::record) return false;
-  assert(record.Size() * sizeof(float) + sizeof(size_t) + sizeof(int) ==
-         byte_size);
   int* index_addr = reinterpret_cast<int*>(slot);
   size_t* size_addr = reinterpret_cast<size_t*>(slot + sizeof(int));
   float* data_begin =
@@ -104,12 +102,12 @@ bool Slot::Set(const BallTreeBranch& branch) {
          byte_size);
   size_t* center_size = reinterpret_cast<size_t*>(slot);
   float* center_begin = reinterpret_cast<float*>(slot + sizeof(size_t));
+  *center_size = branch.center.size();
   std::transform(branch.center.begin(), branch.center.end(), center_begin,
                  [](const auto& data) { return data; });
   double* radius = reinterpret_cast<double*>(center_begin + *center_size);
-  *center_size = branch.center.size();
   Rid* left_addr =
-      reinterpret_cast<Rid*>(center_begin + *center_size + sizeof(double));
+      reinterpret_cast<Rid*>(radius + 1);
   Rid* right_addr = left_addr + 1;
 
   *radius = branch.radius;
@@ -157,7 +155,7 @@ size_t Slot::GetSize(Rid::DataType type, int dimension) {
         ret = node_size + sizeof(Rid) * 2 + sizeof(size_t);
         break;
     case Rid::leaf:
-        ret = node_size + sizeof(Rid) * N0;
+        ret = node_size + sizeof(Rid) * N0 + sizeof(size_t);
         break;
     case Rid::record:
         ret = sizeof(float) * dimension + sizeof(size_t);

@@ -1,5 +1,6 @@
 #ifndef __BALL_TREE_VISITOR
 #define __BALL_TREE_VISITOR
+#include <memory>
 /**
  * visitor pattern for multiple dispatch
  */
