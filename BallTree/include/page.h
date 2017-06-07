@@ -72,7 +72,7 @@ class Page {
      * @Description the delegate construction
      * @Param delegate_constructor unused.
      */
-    Page(int page_id, IntType page_size_in_k, Byte* pool_base, bool delegate_constructor);
+    Page(int page_id, IntType page_size_in_k, Byte* pool_base);
     void init();
 
     inline Slot makeSlot(int slot_id) {
