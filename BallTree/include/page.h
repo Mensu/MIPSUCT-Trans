@@ -7,7 +7,6 @@
 #include "rid.h"
 #include "slot.h"
 #include "Utility.h"
-#include "BallTreeImpl.h"
 
 /**
  * page entity in memory form. Extract the data in page with type T.
