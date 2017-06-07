@@ -160,7 +160,9 @@ bool BallTreeImpl::StoreTree(const Path& index_path) {
         NodeStorer visitor(node_storage_.get());
         cur->Accept(visitor);
     }
-
+    root_->left.reset();
+    root_->right.reset();
+    return true;
 }
 
 /**
