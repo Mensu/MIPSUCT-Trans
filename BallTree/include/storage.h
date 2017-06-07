@@ -337,6 +337,7 @@ class NodeStorage {
     Rid root;
     std::unique_ptr<BranchStorage> branch_storage;
     std::unique_ptr<LeafStorage> leaf_storage;
+    Path dest_dir;
 };
 
 class NormalStorage: public RecordStorage {

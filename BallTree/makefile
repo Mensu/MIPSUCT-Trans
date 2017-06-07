@@ -1,5 +1,5 @@
 CC := g++
-FLAGS := -std=c++14
+FLAGS := -std=c++14 -g
 BUILD_DIR := build
 INC_DIR := include
 SRC_DIR := src
@@ -9,7 +9,8 @@ INCLUDE := -I./$(INC_DIR)
 test_main: $(BUILD_DIR)/BallTree.o $(BUILD_DIR)/test-all.o\
 	$(BUILD_DIR)/BallTreeImpl.o $(BUILD_DIR)/MIPSearcher.o \
 	$(BUILD_DIR)/Utility.o $(BUILD_DIR)/page.o \
-	$(BUILD_DIR)/slot.o $(BUILD_DIR)/NodeBuilder.o
+	$(BUILD_DIR)/slot.o $(BUILD_DIR)/NodeBuilder.o \
+	$(BUILD_DIR)/storage.o
 	$(CC) $(FLAGS) $(INCLUDE) $^ -o $@
 
 main: $(BUILD_DIR)/test.o $(BUILD_DIR)/BallTree.o \
