@@ -257,7 +257,7 @@ class NodeStorage {
     std::unique_ptr<BallTreeNode> Get(Rid rid);
     Rid Put(const BallTreeNode& node);
 
-    std::unique_ptr<BallTreeNode> GetRoot(Rid rid);
+    std::unique_ptr<BallTreeNode> GetRoot();
     Rid PutRoot(const BallTreeNode& node);
 
     inline int GetDimension() {

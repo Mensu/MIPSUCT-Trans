@@ -6,7 +6,11 @@ using Records = std::vector<Record::Pointer>;
  * build the balltree from index file
  */
 BallTreeImpl::BallTreeImpl(Path& index_path) {
-    
+    if (record_storage_) {
+        record_storage_ = storage_factory::GetRecordStorage(index_path, dim);
+        node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
+    }
+    root_ = node_storage_->GetRoot();
 }
 
 /**
@@ -159,7 +163,11 @@ bool BallTreeImpl::StoreTree(Path& index_path) {
         NodeStorer visitor(node_storage_.get(), record_storage_.get());
         cur->Accept(visitor);
     }
-    root_.reset();
+    node_storage_->PutRoot(*root_.get());
+
+    root_ = nullptr;
+    record_storage_ = nullptr;
+    node_storage_ = nullptr;
     return true;
 }
 

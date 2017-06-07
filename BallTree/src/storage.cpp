@@ -10,7 +10,7 @@ Rid NodeStorage::Put(const BallTreeNode& node) {
 
 }
 
-std::unique_ptr<BallTreeNode> NodeStorage::GetRoot(Rid rid) {
+std::unique_ptr<BallTreeNode> NodeStorage::GetRoot() {
 
 }
 Rid NodeStorage::PutRoot(const BallTreeNode& node) {
