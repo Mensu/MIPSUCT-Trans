@@ -252,6 +252,8 @@ class RecordStorage {
  * storage store node
  */
 class NodeStorage {
+    using BranchStorage = FixedLengthStorage<64, Rid::branch, 2>;
+    using LeafStorage = FixedLengthStorage<64, Rid::leaf, 2>;
   public:
     NodeStorage(const Path& dest_dir, int dimension);
     std::unique_ptr<BallTreeNode> Get(Rid rid);
@@ -261,13 +263,13 @@ class NodeStorage {
     Rid PutRoot(const BallTreeNode& node);
 
     inline int GetDimension() {
-        return dimension;
+        return m_dimension;
     }
   private:
-    int dimension;
-    std::fstream others;
-    std::unique_ptr<FixedLengthStorage<64, Rid::branch, 2>> branch_storage;
-    std::unique_ptr<FixedLengthStorage<64, Rid::leaf, 4>> leaf_storage;
+    int m_dimension;
+    Rid root;
+    std::unique_ptr<BranchStorage> branch_storage;
+    std::unique_ptr<LeafStorage> leaf_storage;
 };
 
 class NormalStorage: public RecordStorage {
@@ -275,6 +277,12 @@ class NormalStorage: public RecordStorage {
     NormalStorage(const Path& dest_dir, int dimension);
     virtual Rid Put(const Record& record) override;
     virtual std::unique_ptr<Record> Get(const Rid& rid) override;
+    virtual void DumpTo(const Path& path) override {
+        // no op
+    }
+    private:
+    using RStorage = FixedLengthStorage<64, Rid::record, 4>;
+    std::unique_ptr<RStorage> storage;
 };
 
 /**
