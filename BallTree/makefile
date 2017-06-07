@@ -15,7 +15,8 @@ test: $(BUILD_DIR)/BallTree.o \
 main: $(BUILD_DIR)/test.o $(BUILD_DIR)/BallTree.o \
 	$(BUILD_DIR)/BallTreeImpl.o $(BUILD_DIR)/MIPSearcher.o \
 	$(BUILD_DIR)/Utility.o $(BUILD_DIR)/page.o \
-	$(BUILD_DIR)/slot.o $(BUILD_DIR)/NodeBuilder.o
+	$(BUILD_DIR)/slot.o $(BUILD_DIR)/NodeBuilder.o \
+	$(BUILD_DIR)/storage.o
 	$(CC) $(FLAGS) $(INCLUDE) $^ -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp

@@ -10,6 +10,7 @@
 #include <string>
 #include <type_traits>
 
+constexpr int N0 = 20;
 using Path = std::string;
 using Byte = std::uint8_t;
 

@@ -225,6 +225,9 @@ class NormalStorage;
 
 class RecordStorage {
   public:
+    RecordStorage(const Path& dest_dir, int dimension = -1) {}
+    RecordStorage() = default;
+    RecordStorage(const RecordStorage&) = default;
     /**
      * stores record to the storage and returns the rid pointing to the
      * record, may first try to store in memory, then
@@ -250,11 +253,29 @@ class RecordStorage {
  */
 class NodeStorage {
   public:
-    BallTreeNode* Get(Rid rid) {
-      return nullptr;
+    NodeStorage(const Path& dest_dir, int dimension);
+    std::unique_ptr<BallTreeNode> Get(Rid rid);
+    Rid Put(const BallTreeNode& node);
+
+    std::unique_ptr<BallTreeNode> GetRoot(Rid rid);
+    Rid PutRoot(const BallTreeNode& node);
+
+    inline int GetDimension() {
+        return dimension;
     }
+  private:
+    int dimension;
+    std::fstream others;
+    std::unique_ptr<FixedLengthStorage<64, Rid::branch, 2>> branch_storage;
+    std::unique_ptr<FixedLengthStorage<64, Rid::leaf, 4>> leaf_storage;
 };
 
+class NormalStorage: public RecordStorage {
+    public:
+    NormalStorage(const Path& dest_dir, int dimension);
+    virtual Rid Put(const Record& record) override;
+    virtual std::unique_ptr<Record> Get(const Rid& rid) override;
+};
 
 /**
  * simple storage for algorithm testing

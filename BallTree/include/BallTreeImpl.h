@@ -17,7 +17,6 @@
 #include "MIPSearcher.h"
 #include "NodeBuilder.h"
 
-constexpr int N0 = 20;
 
 class BallTreeImpl {
     using Records = std::vector<Record::Pointer>;
