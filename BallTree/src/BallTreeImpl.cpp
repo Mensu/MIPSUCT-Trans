@@ -131,8 +131,10 @@ std::vector<Rid> BallTreeImpl::StoreAll(const Records& records) {
  * store the balltree to an index file
  */
 bool BallTreeImpl::StoreTree(Path& index_path) {
-    record_storage_ = storage_factory::GetRecordStorage(index_path, dim);
-    node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
+    if (record_storage_) {
+        record_storage_ = storage_factory::GetRecordStorage(index_path, dim);
+        node_storage_ = storage_factory::GetNodeStorage(index_path, dim);
+    }
 
     // postoder
     std::stack<BallTreeNode*> in_stack, out_stack;

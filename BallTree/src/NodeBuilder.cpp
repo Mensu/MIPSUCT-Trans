@@ -28,7 +28,7 @@ std::vector<Rid> NodeStorer::StoreAll(const Records& records) {
 
 
 
-void NodeBuilder::Visit(const BallTreeBranch* branch) {
+void NodeBuilder::Visit(BallTreeBranch* branch) {
 	if (branch->left) {
 		v.push_back(branch->left.get());
 	}
@@ -37,7 +37,7 @@ void NodeBuilder::Visit(const BallTreeBranch* branch) {
 	}
 }
 
-void NodeBuilder::Visit(const BallTreeLeaf* leaf) {
+void NodeBuilder::Visit(BallTreeLeaf* leaf) {
 	return;
 }
 

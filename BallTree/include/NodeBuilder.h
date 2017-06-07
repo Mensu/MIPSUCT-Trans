@@ -33,9 +33,9 @@ class NodeBuilder : public BallTreeVisitor {
   public:
     NodeBuilder() = default;
 
-    virtual void Visit(const BallTreeBranch* branch);
+    virtual void Visit(BallTreeBranch* branch);
 
-    virtual void Visit(const BallTreeLeaf* leaf);
+    virtual void Visit(BallTreeLeaf* leaf);
 
     std::vector<BallTreeNode*> Get() {
     	return std::move(v);
