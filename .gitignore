@@ -2,7 +2,6 @@
 *.log
 *.pdf
 Yahoo/
-Mnist/
 a.out
 *.o
 BallTree/Netflix/index

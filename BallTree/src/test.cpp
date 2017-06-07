@@ -2,7 +2,6 @@
 #include "Utility.h"
 #include <chrono>
 #include <iostream>
-
 #define NETFLIX
 
 #ifdef MNIST
@@ -173,7 +172,7 @@ void TestDataSets() {
 } // anonymous namespace
 
 int main() {
-    TestDataSets< Mnist>();
+    TestDataSets<Yahoo>();
     // char data_path[L], query_path[L];
     // char index_path[L], output_path[L];
     // float **data = nullptr;

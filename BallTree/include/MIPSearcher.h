@@ -27,7 +27,7 @@ class MIPSearcher : public BallTreeVisitor {
     }
 
   private:
-    double PossibleMip(const BallTreeNode* node);
+    double PossibleMip(const std::unique_ptr<BallTreeNode> node);
 
     const std::vector<float>& needle;
     const double needle_norm;

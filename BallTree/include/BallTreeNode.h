@@ -57,10 +57,6 @@ struct BallTreeBranch : BallTreeNode {
         v.Visit(this);
     }
 
-    bool operator==(const BallTreeBranch &another) const {
-        const auto &self = *this;
-        return self.r_left == another.r_left && self.r_right == another.r_right;
-    }
 
     std::unique_ptr<BallTreeNode> left, right;
     Rid r_left, r_right;
@@ -93,20 +89,10 @@ struct BallTreeLeaf : BallTreeNode {
         Rid&& r, Records records)
         : BallTreeNode(std::move(center), radius, std::move(r)),
         data(std::move(d)), raw_data(std::move(records)) {
-            (this);
         }
 
     virtual void Accept(BallTreeVisitor& v) override {
         v.Visit(this);
-    }
-
-
-    bool operator==(const BallTreeLeaf &another) const {
-        const auto &self = *this;
-        for (int i = 0; i < data.size(); i++) {
-            if (not (self.data[i] == another.data[i])) return false;
-        }
-        return true;
     }
 
     std::vector<Rid> data;

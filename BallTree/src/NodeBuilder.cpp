@@ -38,10 +38,10 @@ std::vector<Rid> NodeStorer::StoreAll(const Records& records) {
 
 void NodeBuilder::Visit(BallTreeBranch* branch) {
 	if (branch->left) {
-		v.push_back(branch->left);
+		v.push_back(branch->left.get());
 	}
 	if (branch->right) {
-		v.push_back(branch->right);
+		v.push_back(branch->right.get());
 	}
 }
 

@@ -1,6 +1,6 @@
 #include "storage.h"
-const char* root_file = "/root";
-const char* dimension_file = "/dimension.bin";
+const char* root_file = "root";
+const char* dimension_file = "dimension.bin";
 NodeStorage::NodeStorage(const Path& dest_dir, int dimension = -1)
                         : m_dimension(dimension),
                         branch_storage(nullptr),
