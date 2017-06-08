@@ -11,6 +11,7 @@ test_main: $(BUILD_DIR)/BallTree.o $(BUILD_DIR)/test-all.o\
 	$(BUILD_DIR)/Utility.o $(BUILD_DIR)/page.o \
 	$(BUILD_DIR)/slot.o $(BUILD_DIR)/NodeBuilder.o \
 	$(BUILD_DIR)/storage.o
+	@make index-dir	
 	$(CC) $(FLAGS) $(INCLUDE) $^ -o $@
 
 main: $(BUILD_DIR)/test.o $(BUILD_DIR)/BallTree.o \
@@ -18,6 +19,7 @@ main: $(BUILD_DIR)/test.o $(BUILD_DIR)/BallTree.o \
 	$(BUILD_DIR)/Utility.o $(BUILD_DIR)/page.o \
 	$(BUILD_DIR)/slot.o $(BUILD_DIR)/NodeBuilder.o \
 	$(BUILD_DIR)/storage.o
+	@make index-dir
 	$(CC) $(FLAGS) $(INCLUDE) $^ -o $@
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
@@ -32,6 +34,14 @@ clean:
 	rm -rf $(BUILD_DIR)
 	rm -rf main
 	rm -rf test_main
+	make clean-data
+
+clean-data:
 	rm -rf Mnist/index/*
 	rm -rf Netflix/index/*
 	rm -rf Yahoo/index/*
+
+index-dir:
+	mkdir -p Mnist/index/*
+	mkdir -p Netflix/index/*
+	mkdir -p Yahoo/index/*
