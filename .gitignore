@@ -6,3 +6,4 @@ a.out
 *.o
 BallTree/Netflix/index
 BallTree/Netflix/dst
+main

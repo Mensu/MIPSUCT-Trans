@@ -1,5 +1,5 @@
 CC := g++
-FLAGS := -std=c++14 -g
+FLAGS := -std=c++14 -O3
 BUILD_DIR := build
 INC_DIR := include
 SRC_DIR := src
@@ -29,9 +29,9 @@ $(BUILD_DIR)/test-all.o: $(TEST_DIR)/test-all.cpp
 	$(CC) $(FLAGS) $(INCLUDE) -c -o $@ $<
   
 clean:  
-	@rm -rf $(BUILD_DIR)
-	@rm -rf $(BIN_DIR)
-	@rm -rf main
-	@rm -rf test_main
-	@rm -rf Mnist/index/*
-	@rm -rf Netflix/index/*
+	rm -rf $(BUILD_DIR)
+	rm -rf main
+	rm -rf test_main
+	rm -rf Mnist/index/*
+	rm -rf Netflix/index/*
+	rm -rf Yahoo/index/*

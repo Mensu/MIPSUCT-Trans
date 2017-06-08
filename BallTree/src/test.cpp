@@ -37,7 +37,7 @@ constexpr char kMnist[] = "Mnist";
 
 using Netflix = DataSet<kNetflix, 17770, 50>;
 using Yahoo =
-    DataSet<kYahoo, 62400, 300>; // shrinked data scale, 624000 -> 62400
+    DataSet<kYahoo, 10000, 300>; // shrinked data scale, 624000 -> 62400
 using Mnist = DataSet<kMnist, 60000, 50>;
 using Records = std::vector<Record::Pointer>;
 namespace {
@@ -53,7 +53,7 @@ std::string DataPath(const char *dataset) {
 std::string IndexPath(const char *dataset) { return dataset + "/index/"s; }
 
 template <
-    typename Duration = std::chrono::seconds, typename Func, typename... Args>
+    typename Duration = std::chrono::milliseconds, typename Func, typename... Args>
 Duration Time(const Func &f, Args &&... args) {
     auto start = std::chrono::high_resolution_clock::now();
     f(std::forward<Args>(args)...);
@@ -65,7 +65,7 @@ template <typename F>
 void TimeAndPrint(const F &f, const std::string &prologue = "") {
     std::cout << prologue;
     auto time = Time(f);
-    std::printf("DONE.\n It took %lld seconds\n\n", time.count());
+    std::printf("DONE.\n It took %lf seconds\n\n", time.count() / 1000.);
 }
 
 template <
@@ -172,5 +172,5 @@ void TestDataSets() {
 } // anonymous namespace
 
 int main() {
-    TestDataSets<Mnist>();
+    TestDataSets<Yahoo, Netflix, Mnist>();
 }

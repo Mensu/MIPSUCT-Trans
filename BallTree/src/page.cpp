@@ -44,7 +44,6 @@ Slot Page::select(const int& slot_id) {
     assert(slot_id < m_slot_map.size() and m_slot_map[slot_id]);
     return makeSlot(slot_id);
 }
-
 /**
  * @Description Insert new slot in page
  * @Return tuple of Rid and Slot.

@@ -276,7 +276,7 @@ class FixedLengthStorage {
     static constexpr std::ios::openmode in_mode = std::ios::binary | std::ios::in;
     static constexpr std::ios::openmode out_mode = std::ios::binary | std::ios::out;
     static constexpr std::ios::openmode openmode = std::ios::binary | std::ios::in | std::ios::out;
-    static constexpr std::size_t page_size_in_k = (BytesPerPage + 1023) / 1024;
+    static constexpr std::size_t page_size_in_k = BytesPerPage;
     static constexpr std::size_t page_size = page_size_in_k * 1024;
     static constexpr std::size_t buffer_size = page_size * MaxPageInMemory;
     static constexpr std::size_t begin_pos = 0;
