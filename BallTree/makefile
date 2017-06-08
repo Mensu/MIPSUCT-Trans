@@ -42,6 +42,6 @@ clean-data:
 	rm -rf Yahoo/index/*
 
 index-dir:
-	mkdir -p Mnist/index/*
-	mkdir -p Netflix/index/*
-	mkdir -p Yahoo/index/*
+	mkdir -p Mnist/index
+	mkdir -p Netflix/index
+	mkdir -p Yahoo/index
